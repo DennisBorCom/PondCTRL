@@ -34,9 +34,9 @@ class MemoryTools {
     const word EEPROM_APIKEY[2] = {256, 32};
     const word EEPROM_FEEDPAUSE_DURATION[2] = {288, 2};     // feed pause duration in seconds, max 65535
     const word EEPROM_TIMESERVER_UTC_OFFSET[2] = {290, 4};  // utc offset in seconds, first two bytes represent positive correction (max 14 hours * 3600 seconds)
-                                                          // second two bytes represent negative correction (max 12 hours * 3600 seconds)
+                                                            // second two bytes represent negative correction (max 12 hours * 3600 seconds)
     const word EEPROM_TIMESERVER_ADDRESS[2] = {294, 64};    // timeserver address, default is pool.ntp.org
-    const word EEPROM_UPNP_PORT[2] = { 358, 2};              // externe upnp poort (0-65535) 
+    const word EEPROM_UPNP_PORT[2] = { 358, 2};             // externe upnp poort (0-65535) 
     
     // public function declarations
     void hardReset();
