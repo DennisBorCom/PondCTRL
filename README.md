@@ -46,9 +46,7 @@ Compile using the following board settings:
 * Espressif FW: nonos-sdk 2.2.1+100 (190703)
 * SSL Support: All SSL ciphers (most compatible)
 
-The following libraries are required:
-
-Libraries - Can be downloaded from the arduino_libraries folder
+The following libraries are required (Can be downloaded from the arduino_libraries folder):
 
 * NTPClient v 3.2.0
 * ArduinoJSON  5.13.4
