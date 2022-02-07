@@ -21,7 +21,7 @@
 #include "webserver.h"
 
 // current firmware version
-const int FIRMWARE_VERSION = 1222;
+const int FIRMWARE_VERSION = 1223;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS

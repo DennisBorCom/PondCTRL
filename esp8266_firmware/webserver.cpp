@@ -1005,6 +1005,20 @@ void WebServer::get() {
     jsonObject.set("time_minutes", minutes);
     jsonObject.set("time_hours", hours);
 
+    // temporary garbage
+/*
+     $stamp = time(); //1597816659;        // 8:10 nl, 7:10 utc
+    
+    $hms = $stamp % 86400;
+    $seconds = $hms % 60;                           // seconds is remainder of 60
+    $minutes = (($hms - $seconds) % 3600 / 60);     // stamp - seconds, remainder of 3600 divided by 60
+    $hours = ($hms - $seconds - ($minutes * 60)) / 3600;
+    
+    echo $hms.'<br/>'.$seconds.'<br/>'.$minutes.'<br/>'.$hours;
+
+    */
+    
+    
     // update information
     // set currentversion parameter
     jsonObject.set("currentversion", currentFirmwareVersion);
@@ -2134,8 +2148,10 @@ void WebServer::postProcessSensorSettings(unsigned int sensorIndex, byte data[16
 
   // store low and high alarms
   sensors[sensorIndex].lowAlarm = (data[0] << 8) + data[1];
-  sensors[sensorIndex].highAlarm = (data[2] << 8) +  data[3]; 
+  sensors[sensorIndex].highAlarm = (data[2] << 8) +  data[3];
+  
 }
+
 
 /**
  * Executes a query on the I2C bus. Any command can be executed as long
