@@ -1,0 +1,138 @@
+
+{
+  "packages": [
+    {
+      "name": "ESP8266_PondCTRL",
+      "maintainer": "Pond[CTRL]",
+      "websiteURL": "https://github.com/DennisBorCom/PondCTRL/",
+      "email": "dennis@dennisbor.com",
+      "help": {
+        "online": "https://esp8266.com/arduino"
+      },
+      "platforms": [
+        {
+          "category": "ESP8266",
+          "name": "PondCTRL WiFi Module (ESP8266)",
+          "url": "https://pondctrl.dennisbor.com/source/arduino_boards/esp8266-2.7.4.zip",
+          "version": "2.7.4",
+          "architecture": "esp8266",
+          "archiveFileName": "esp8266-2.7.4.zip",
+          "boards": [
+            {
+              "name": "Generic ESP8266 Module"
+            }
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "esp8266",
+              "version": "2.5.0-4-b40a506",
+              "name": "xtensa-lx106-elf-gcc"
+            },
+            {
+              "packager": "esp8266",
+              "version": "2.5.0-4-b40a506",
+              "name": "mkspiffs"
+            },
+            {
+              "packager": "esp8266",
+              "version": "2.5.0-4-fe5bb56",
+              "name": "mklittlefs"
+            },
+            {
+              "packager": "esp8266",
+              "version": "3.7.2-post1",
+              "name": "python3"
+            }
+          ],
+          "help": {
+            "online": ""
+          },
+          "size": "34470452",
+          "checksum": "SHA-256:a54db9bff81c963e0345a36de6e8443e9d33760caad1f5f48663731bdf5e19da"
+        } 
+      ],
+      "tools": [
+        {
+          "version": "3.7.2-post1",
+          "name": "python3",
+          "systems": [
+            {
+              "host": "x86_64-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/python3-3.7.2.post1-embed-win32v2a.zip",
+              "archiveFileName": "python3-3.7.2.post1-embed-win32v2a.zip",
+              "checksum": "SHA-256:f57cb2daf86176d2929e7c58990c2ac32554e3219d454dcac10e464ddda35bf2",
+              "size": "6428926"
+            },
+            {
+              "host": "i686-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/python3-3.7.2.post1-embed-win32v2a.zip",
+              "archiveFileName": "python3-3.7.2.post1-embed-win32v2a.zip",
+              "checksum": "SHA-256:f57cb2daf86176d2929e7c58990c2ac32554e3219d454dcac10e464ddda35bf2",
+              "size": "6428926"
+            }
+          ]
+        },
+        {
+          "version": "2.5.0-4-b40a506",
+          "name": "xtensa-lx106-elf-gcc",
+          "systems": [
+            {
+              "host": "x86_64-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/x86_64-w64-mingw32.xtensa-lx106-elf-b40a506.1563313032.zip",
+              "archiveFileName": "x86_64-w64-mingw32.xtensa-lx106-elf-b40a506.1563313032.zip",
+              "checksum": "SHA-256:01c31cd521b058e0805b9d1f3728798a42b1a217a7a34debcda3fcba23414b0e",
+              "size": "48656678"
+            },
+            {
+              "host": "i686-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/i686-w64-mingw32.xtensa-lx106-elf-b40a506.1563313032.zip",
+              "archiveFileName": "i686-w64-mingw32.xtensa-lx106-elf-b40a506.1563313032.zip",
+              "checksum": "SHA-256:694680c2215a65364748ca876c701479580c017757cd8ed6c3df0d48c2f7bd79",
+              "size": "44955630"
+            }
+          ]
+        },
+        {
+          "version": "2.5.0-4-b40a506",
+          "name": "mkspiffs",
+          "systems": [
+            {
+              "host": "x86_64-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/x86_64-w64-mingw32.mkspiffs-7fefeac.1563313032.zip",
+              "archiveFileName": "x86_64-w64-mingw32.mkspiffs-7fefeac.1563313032.zip",
+              "checksum": "SHA-256:1c71a7ce71bd39fb83bfab138388adca8c1f9b798e09efd9932aa99d26c04c9b",
+              "size": "350035"
+            },
+            {
+              "host": "i686-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/i686-w64-mingw32.mkspiffs-7fefeac.1563313032.zip",
+              "archiveFileName": "i686-w64-mingw32.mkspiffs-7fefeac.1563313032.zip",
+              "checksum": "SHA-256:3e0fd9212027cba06e362ae6921f48d252834996d81e1ade41d5b5c54735837a",
+              "size": "337874"
+            }
+          ]
+        },
+        {
+          "version": "2.5.0-4-fe5bb56",
+          "name": "mklittlefs",
+          "systems": [
+            {
+              "host": "x86_64-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/x86_64-w64-mingw32.mklittlefs-fe5bb56.1578453304.zip",
+              "archiveFileName": "x86_64-w64-mingw32.mklittlefs-fe5bb56.1578453304.zip",
+              "checksum": "SHA-256:a460f410a22a59e23d7f862b8d08d6b7dfbc93aa558f8161a3d640d4df2ab86f",
+              "size": "344792"
+            },
+            {
+              "host": "i686-mingw32",
+              "url": "https://pondctrl.dennisbor.com/source/arduino_boards/i686-w64-mingw32.xtensa-lx106-elf-b40a506.1563313032.zip",
+              "archiveFileName": "i686-w64-mingw32.xtensa-lx106-elf-b40a506.1563313032.zip",
+              "checksum": "SHA-256:694680c2215a65364748ca876c701479580c017757cd8ed6c3df0d48c2f7bd79",
+              "size": "44955630"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
