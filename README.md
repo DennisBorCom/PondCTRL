@@ -14,7 +14,7 @@ Acts as an access-point until a WiFi connection is established with a router.
 ... more information will follow ...
 
 Source code exists of:
-* atmega328 firmware (uploadable using onboard) USB controller
+* atmega328 firmware (uploadable using onboard USB controller)
 * esp8266 firmware (can be upgraded OTA or with an ESP-programmer)
 
 Written using the Arduino IDE. 
@@ -46,3 +46,12 @@ Erase Flash: Only Sketch
 Espressif FW: nonos-sdk 2.2.1+100 (190703)
 SSL Support: All SSL ciphers (most compatible)
 
+The following libraries are required:
+
+Libraries - Can be downloaded from the arduino_libraries folder
+
+* NTPClient v 3.2.0
+* ArduinoJSON  5.13.4
+* DallasTemperature v 3.8.0
+* OneWire 2.3.5
+* TinyUPnP 3.1.4 (customized version, supporting different internal and external port numbers)
