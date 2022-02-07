@@ -28,23 +28,23 @@ https://pondctrl.dennisbor.com/source/arduino_boards/esp8266.json
 
 Compile using the following board settings:
 
-Board: Generic ESP8266 Module
-Builtin Led: 2
-Upload Speed: 115200
-CPU Frequeny: 80MHz
-Crystal Frequency: 26 MHz
-Flash Size: 1MB (FS: none, OTA:~512KB)
-Flash Mode: DOUT (compatible)
-Flash Frequency (40 MHz)
-Reset Method: dtr (aka nodemcu)
-Debug port: disabled
-Debug level: none
-IwIP Variant: v2 Lower Mempry
-VTables: Flash
-Exceptions: Legacy (new can return nullptr)
-Erase Flash: Only Sketch
-Espressif FW: nonos-sdk 2.2.1+100 (190703)
-SSL Support: All SSL ciphers (most compatible)
+* Board: Generic ESP8266 Module
+* Builtin Led: 2
+* Upload Speed: 115200
+* CPU Frequeny: 80MHz
+* Crystal Frequency: 26 MHz
+* Flash Size: 1MB (FS: none, OTA:~512KB)
+* Flash Mode: DOUT (compatible)
+* Flash Frequency (40 MHz)
+* Reset Method: dtr (aka nodemcu)
+* Debug port: disabled
+* Debug level: none
+* IwIP Variant: v2 Lower Mempry
+* VTables: Flash
+* Exceptions: Legacy (new can return nullptr)
+* Erase Flash: Only Sketch
+* Espressif FW: nonos-sdk 2.2.1+100 (190703)
+* SSL Support: All SSL ciphers (most compatible)
 
 The following libraries are required:
 
