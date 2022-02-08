@@ -1,6 +1,6 @@
-# Pond[CTRL] - The open source pond controller<br>
+# Pond[CTRL] - The open source pond controller <br>
 <br>
-__PLEASE NOT THAT THIS INFORMATION IS NOT COMPLETE YET__<br>
+__PLEASE NOT THAT THIS INFORMATION IS NOT COMPLETE YET__ <br>
 <br>
 An open source pond controller able to measure temperature, pH and level and switch AC sockets.<br>
 <br>
@@ -8,15 +8,15 @@ Pond[CTRL]'s hardware is consists of a self-designed PCB with two major parts:<b
 * an ATmega328 microcontroller handling measurements and socket switching<br>
 * an ESP8266 WiFi module controlling the ATmega  <br>
 <br>
-__Communication__<br>
+__Communication__ <br>
 For communication between the ATmega328 and ESP8266 the I2C bus is used, with a logic level converter (ATMega runs on 5V while the ESP8266 is unable to handle voltages above 3.3V). The ESP8266 acts as I2C master, sending 17 bytes to the ATmega328 slave: 1 command byte and 16 data bytes. The ATmega then responds with 16 bytes.<br>
 <br>
-__Initial setup__<br>
+__Initial setup__ <br>
 The ESP8266 has a very limited user interface, only capable of connecting to your WiFi-network. While not connected, it acts as an access point _'Pond[CTRL] by Dennis Bor'_ with a captive portal forwarding to the initial setup page and a mDNS responder. Go to [pondctrl.local](pondctrl.local) to access the device. Write down the device serial number when shown, because you need it to register your device once in the online user interface.<br>
 <br>
 When connected to the internet, the device is registered and starts uploading device information and measurement data to the server. The status light will light up when succesfully connected. Pond[CTRL] uses UPnP to automatically add port forwarding to access your device from outside the network. <br>
 <br>
-__User interface__<br>
+__User interface__ <br>
 The ESP8266 is very limited in storage and to be able to receive OTA updates, the user interface is hosted online instead of on the device itself. The user interface connects to your device, using information sent by itself to the servers. The user interface is accessible through [pondctrl.dennisbor.com](https://pondctrl.dennisbor.com). You need to create a user account and register your device once using the device serial number obtained in the initial setup. <br>
 <br>
 The Pond[CTRL] user interface will show:<br>
@@ -59,13 +59,13 @@ Configurable system settings:<br>
 API key settings:<br>
 * random api key generation (64 characters) for other apps to be able to control the device without username and password authentication.<br>
 <br>
-__Button behaviour__<br>
+__Button behaviour__ <br>
 The device button has different functions, depending on the duration it is pressed:<br>
 * 0 - 4 seconds: activate/deactivate feed pause<br>
 * 5 - 14 seconds: Pond[CTRL] sensor and socket hard reset<br>
 * more than 14 seconds: Pond[CTRL] WiFi module hard reset<br>
 <br>
-# Source code<br>
+# Source code <br>
 <br>
 Source code exists of:<br>
 <br>
