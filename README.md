@@ -53,3 +53,22 @@ The following libraries are required (Can be downloaded from the arduino_librari
 * DallasTemperature v 3.8.0
 * OneWire 2.3.5
 * TinyUPnP 3.1.4 (customized version, supporting different internal and external port numbers)
+
+Atmega Pinout:
+
+GPIO2  /  2        Socket 1 switching
+GPIO3  /  3        Socket 2 switching
+GPIO4  /  4        Socket 3 switching
+GPIO5  /  5        Button
+GPIO6  /  6        Socket 4 switching
+GPIO7  /  7        Socket 5 switching
+GPIO9  /  9        OneWire temperature sensor #2
+GPIO10 / 10        Status LED
+GPIO11 / 11        Speaker
+GPIO12 / 12        Level switch
+GPIO13 / 13        OneWire temperature sensor #1
+GPIO15 / A1        pH sensor #2
+GPIO17 / A3        pH sensor #1
+
+
+
