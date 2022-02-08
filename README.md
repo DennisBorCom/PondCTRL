@@ -8,7 +8,8 @@ Pond[CTRL]'s hardware is consists of a self-designed PCB with two major parts:<b
 * an ATmega328 microcontroller handling measurements and socket switching<br>
 * an ESP8266 WiFi module controlling the ATmega  <br>
 <br>
-__Communication__ <br>
+__Communication__ 
+<br>
 For communication between the ATmega328 and ESP8266 the I2C bus is used, with a logic level converter (ATMega runs on 5V while the ESP8266 is unable to handle voltages above 3.3V). The ESP8266 acts as I2C master, sending 17 bytes to the ATmega328 slave: 1 command byte and 16 data bytes. The ATmega then responds with 16 bytes.<br>
 <br>
 __Initial setup__ <br>
