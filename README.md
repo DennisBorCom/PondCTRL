@@ -1,8 +1,8 @@
-# Pond[CTRL] - The open source pond controller
-
-__PLEASE NOT THAT THIS INFORMATION IS NOT COMPLETE YET__
-
-An open source pond controller able to measure temperature, pH and level and switch AC sockets.
+# Pond[CTRL] - The open source pond controller<br>
+<br>
+__PLEASE NOT THAT THIS INFORMATION IS NOT COMPLETE YET__<br>
+<br>
+An open source pond controller able to measure temperature, pH and level and switch AC sockets.<br>
 
 Pond[CTRL]'s hardware is consists of a self-designed PCB with two major parts:
 * an ATmega328 microcontroller handling measurements and socket switching
