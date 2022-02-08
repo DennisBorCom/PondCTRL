@@ -118,3 +118,5 @@ GPIO12 / 12   :    Level switch<br>
 GPIO13 / 13   :    OneWire temperature sensor #1<br>
 GPIO15 / A1   :    pH sensor #2<br>
 GPIO17 / A3   :    pH sensor #1<br>
+
+See [this YouTube link](https://www.youtube.com/watch?v=exe7im2dTx8) for a visual preview of an outdated interface version
