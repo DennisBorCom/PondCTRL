@@ -91,7 +91,7 @@ Compile using the following board settings:<br>
 * IwIP Variant: v2 Lower Mempry<br>
 * VTables: Flash<br>
 * Exceptions: Legacy (new can return nullptr)<br>
-* Erase Flash: Only Sketch<br>
+* Erase Flash: All flash content<br>
 * Espressif FW: nonos-sdk 2.2.1+100 (190703)<br>
 * SSL Support: All SSL ciphers (most compatible)<br>
 <br>
