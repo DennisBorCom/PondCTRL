@@ -73,7 +73,7 @@ Source code exists of:<br>
 * atmega328 firmware (uploadable using onboard USB controller)<br>
 * esp8266 firmware (initial firmware must bu uploaded using an ESP-programmer and can then be upgraded OTA)<br>
 <br>
-The source code is written using the Arduino IDE. To compile/upload atmega firmware, use the IDE with arduino UNO settings. To compile ESP8266 firmware, use following board manager url (both 32 and 64 bit Windows versions are supported) [https://pondctrl.dennisbor.com/source/arduino_boards/esp8266.json](https://pondctrl.dennisbor.com/source/arduino_boards/esp8266.json)<br>
+The source code is written using the Arduino IDE. To compile/upload atmega firmware, use the IDE with arduino UNO settings. To compile ESP8266 firmware, use following board manager url (both 32 and 64 bit Windows versions are supported) https://arduino.esp8266.com/stable/package_esp8266com_index.json and install version 2.7.4 of the ESP8266 community boards.<br>
 <br>
 Compile using the following board settings:<br>
 <br>
