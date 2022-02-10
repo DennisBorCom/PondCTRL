@@ -1569,7 +1569,7 @@ void WebServer::setWiFi() {
   outputJSON(jsonOutput);
 
   // delay one second to prevent early disconnecting between
-  // web server and client
+  // web server and client 
   delay(1000);
 
   // save current ssid and passphrase to be able to fall back if the new
@@ -1581,19 +1581,20 @@ void WebServer::setWiFi() {
   WiFi.disconnect();
   
   // char to register connection attempts. we will attempt a maximum of
-  // 25 times with an interval of 500ms.
+  // 10 times with increasing interval.
   char connectionAttempt = 0;
 
-  // not yet connected and the number of attempts less than 25
-  while ((WiFi.status() != WL_CONNECTED) && (connectionAttempt < 25)) {
+  // not yet connected and the number of attempts less than 10
+  while ((WiFi.status() != WL_CONNECTED) && (connectionAttempt < 10)) {
+    
     // attempt to connect to the specified network
     WiFi.begin(
       moduleWebServer.arg("ssid").c_str(), 
       moduleWebServer.arg("passphrase").c_str()
     );
-
-    // delay of 500ms
-    delay(500);
+    
+    // delay is 5 seconds
+    delay(5000);
 
     // increment the connection attempt counter
     connectionAttempt ++;
@@ -1601,7 +1602,6 @@ void WebServer::setWiFi() {
 
   // connection succesful
   if (WiFi.status() == WL_CONNECTED) {
-
     
     // write ssid and passphrase to memory
     memTools.writeMemory(memTools.EEPROM_SSID, moduleWebServer.arg("ssid"));

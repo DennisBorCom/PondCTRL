@@ -20,6 +20,10 @@
 #include "iot.h"
 #include "webserver.h"
 
+#undef UPNP_DEBUG
+
+#define debugPrint(...)
+
 // current firmware version
 const int FIRMWARE_VERSION = 1223;
 
@@ -115,16 +119,15 @@ bool connectAP() {
     passphrase.c_str()
   );
 
-  // iterator for a maximum of 25 connection attempts
+  // iterator for a maximum of <defined> connection attempts
   int iterator = 0;
   
   // iterate as long as not connected we did not iterate
-  // 25 times yet. between iterations there is a delay of 500ms, meaning
-  // an unsuccesful connection attempt will take 12.5s (25 * 500ms)
-  while ((WiFi.status() != WL_CONNECTED) && (iterator < 25)) {
+  // 10 times yet. between iterations there is a 5s delay
+  while ((WiFi.status() != WL_CONNECTED) && (iterator < 10)) {
 
-      // wait for 500ms
-      delay(500);
+      // wait for 1s
+      delay(5000);
 
       // increment the iterator
       iterator ++;
@@ -146,6 +149,9 @@ bool connectAP() {
     webserver.setWirelessMode(2);
 
     // all set!
+
+    // initialize upnp port mappings
+    setUPnPMappings();
 
     // return true
     return true;
@@ -186,7 +192,7 @@ void startAP() {
   // start a new access point with name Pond[CTRL] by Dennis Bor
   // if succeeded...
   if (WiFi.softAP("Pond[CTRL] by Dennis Bor", "")) {
-
+    
     // set the wireless mode to access point (1)
     webserver.setWirelessMode(1);
   } 
@@ -224,8 +230,10 @@ void setup(void) {
 
   // read ssid, passphrase and mdns responder name from memory
   ssid = memTools.readMemory(memTools.EEPROM_SSID);
+   
   passphrase = memTools.readMemory(memTools.EEPROM_PASSPHRASE);
-  mdns_hostname = memTools.readMemory(memTools.EEPROM_MDNSRESPONDER);
+  
+  mdns_hostname = memTools.readMemory(memTools.EEPROM_MDNSRESPONDER);  
 
   // add and start a mdns responder for tcp port 80
   MDNS.addService("http","tcp",80);
@@ -306,9 +314,9 @@ void setup(void) {
       // is ready again
       delay(10);
   }
-  
+ 
   // begin timeserver synchronization
-  timeClient.begin();
+  timeClient.begin(); 
 }
 
 /**
@@ -317,15 +325,12 @@ void setup(void) {
  * @return          this function does not produce a return value
  */
 void loop() {
-
+ 
   // update mdns responder
   MDNS.update();
 
   // process next dns server request
   dnsServer.processNextRequest();
-
-  // update upnp port mappings
-  tinyUPnP->updatePortMappings(50000, &setUPnPMappings);  // 50 seconds
 
   // process webserver requests
   webserver.handleRequests();
@@ -392,6 +397,9 @@ void loop() {
         // and if faild start ap
         maintainConnection();
     }
+
+    // update upnp port mappings
+    tinyUPnP->updatePortMappings(300000, &setUPnPMappings);  // 300 seconds
 
     // set current stamp to last run stamp
     lastRunTimestamp = currentTimestamp;

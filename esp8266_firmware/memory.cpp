@@ -77,6 +77,8 @@ void MemoryTools::checkFirstRun() {
   // first byte equals 255
   if (EEPROM.read(0) == 255) {
 
+    Serial.println("Flash reset");
+
     // perform a hard reset (default values will be stored in memory)
     hardReset();
   }
@@ -129,6 +131,8 @@ void MemoryTools::hardReset() {
   writeMemory(EEPROM_GUI_USERNAME, "admin");
   writeMemory(EEPROM_GUI_PASSWORD, "admin");
   writeMemory(EEPROM_MDNSRESPONDER, "pondctrl");
+  writeCharToMemory(EEPROM_UPNP_PORT[0], 7777 >> 8);
+  writeCharToMemory(EEPROM_UPNP_PORT[0] + 1, 7777 & 255);
 
   // disconnect active connections
   WiFi.disconnect();
