@@ -17,7 +17,7 @@
 #define SENSORSTATE_UNCHANGED   0
 #define SENSORSTATE_CHANGED     1
 
-#define NUMBEROFVALUES          25
+#define NUMBEROFVALUES          50
 
 // Sensor structure
 class Sensor {

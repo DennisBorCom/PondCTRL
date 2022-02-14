@@ -96,11 +96,9 @@ class WebServer {
     // boolean to hold if sensor alarm auto recovery is enabled
     bool alarmAutoRecovery = false;
 
-    // boolean to hold if alarm buzzer is on
-    bool alarmSoundOn = false;
-
     // private function declarations
     void outputJSON(String jsonOutput);
+    void noOutput();
     void doLogin();
     void setWiFi();
     void listNetworks();
@@ -118,6 +116,7 @@ class WebServer {
     void toggleFeedPause();
     void toggleAlarmSound();
     void toggleAlarmAutoRecovery();
+    void setCORSHeaders();
     void get();
     void setSensor();
     void setSocket();
@@ -132,6 +131,9 @@ class WebServer {
     Sensor sensors[5];
     Socket sockets[5];
 
+    // boolean to hold if alarm buzzer is on
+    bool alarmSoundOn = false;
+    
     // public member functions
     void setWirelessMode(char mode);
     void setSSIDPassPhraseAndMDSNHostname(String targetSSID, String targetPassphrase, String mdnsHostname);

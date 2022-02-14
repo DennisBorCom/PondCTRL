@@ -1043,6 +1043,9 @@ void WebServer::get() {
     // create an array to store sensor data
     JsonArray& sensorJsonArray = jsonBuffer.createArray();
 
+    // boolean to hold if one or more alarms are raised
+    bool alarm = false;
+
     // iterate through all sensors
     for (unsigned int iterator = 0; iterator < 5; iterator ++) {
 
@@ -1058,6 +1061,9 @@ void WebServer::get() {
       jsonSensor.set("threshold", sensors[iterator].threshold);
       jsonSensor.set("state", sensors[iterator].state);
       jsonSensor.set("currentvalue", sensors[iterator].getValue());
+
+      // store if alarm is raised in boolean
+      alarm |= sensors[iterator].alarmRaised;
 
       // add the current ssid to the array
       sensorJsonArray.add(jsonSensor);
@@ -1082,6 +1088,9 @@ void WebServer::get() {
       jsonSocket.set("affectedbyfeedpause", sockets[iterator].affectedByFeedPause);
       jsonSocket.set("alarmraised", sockets[iterator].alarmRaised);
       jsonSocket.set("active", sockets[iterator].isActive);
+
+      // store if alarm is raised in boolean
+      alarm |= sockets[iterator].alarmRaised;
       
       // add the current ssid to the array
       socketJsonArray.add(jsonSocket);
@@ -1091,7 +1100,12 @@ void WebServer::get() {
     // add socket array to the json object
     jsonObject.set("sockets", socketJsonArray);
 
+    // set global alarm parameter
+    jsonObject.set("alarmraised", alarm);
+
   }
+
+  
 
   // output json output to string
   String jsonOutput;
@@ -1387,6 +1401,21 @@ void WebServer::doUpdate() {
   }
 }
 
+
+/**
+ * Send empty response
+ * 
+ * @return          this function does not produce a return value
+ */
+void WebServer::noOutput() {
+
+  // send CORS compatible headers
+  WebServer::setCORSHeaders();
+  
+  // send empty response
+  moduleWebServer.send(204);
+}
+
 /**
  * Send output to the webserver
  * 
@@ -1396,13 +1425,27 @@ void WebServer::doUpdate() {
  */
 void WebServer::outputJSON(String jsonOutput) {
 
-  // allow cross resource sharing
-  moduleWebServer.sendHeader("Access-Control-Allow-Origin", "*");
+  // send CORS compatible headers
+  WebServer::setCORSHeaders();
   
   // send http header and data
   moduleWebServer.send(200, "text/plain", jsonOutput);
 }
 
+/**
+ * Set CORS compatible headers
+ * 
+ * @return          this function does not produce a return value
+ */
+void WebServer::setCORSHeaders() {
+  
+  // allow cross resource sharing
+  moduleWebServer.sendHeader(F("Access-Control-Allow-Origin"), F("*"));
+  moduleWebServer.sendHeader(F("Access-Control-Max-Age"), F("600"));
+  moduleWebServer.sendHeader(F("Access-Control-Allow-Methods"), F("PUT,POST,GET,OPTIONS"));
+  moduleWebServer.sendHeader(F("Access-Control-Allow-Headers"), F("*"));
+  moduleWebServer.sendHeader(F("Access-Control-Allow-Private-Network"), F("true"));
+}
 
 /**
  * Attempts to log in to the module using the given username and password
@@ -2535,27 +2578,30 @@ WebServer::WebServer() {
   sensors[4].isSwitch = true;
 
   // set all tarhet functions for http requests
-  moduleWebServer.on("/get", HTTP_GET, std::bind(&WebServer::get, this));
-  moduleWebServer.on("/toggleFeedPause", HTTP_POST, std::bind(&WebServer::toggleFeedPause, this));
-  moduleWebServer.on("/toggleAlarmSound", HTTP_POST, std::bind(&WebServer::toggleAlarmSound, this));
-  moduleWebServer.on("/toggleAlarmAutoRecovery", HTTP_POST, std::bind(&WebServer::toggleAlarmAutoRecovery, this));
-  moduleWebServer.on("/setAdmin", HTTP_POST, std::bind(&WebServer::setAdmin, this));
-  moduleWebServer.on("/doLogout", HTTP_GET, std::bind(&WebServer::doLogout, this));
-  moduleWebServer.on("/doUpdate", HTTP_GET, std::bind(&WebServer::doUpdate, this));
-  moduleWebServer.on("/listNetworks", HTTP_GET, std::bind(&WebServer::listNetworks, this)); 
-  moduleWebServer.on("/doLogin", HTTP_POST, std::bind(&WebServer::doLogin, this));
-  moduleWebServer.on("/setWiFi", HTTP_POST, std::bind(&WebServer::setWiFi, this));
-  moduleWebServer.on("/setApiKey", HTTP_POST, std::bind(&WebServer::setApiKey, this));
-  moduleWebServer.on("/query", HTTP_GET, std::bind(&WebServer::query, this));  
-  moduleWebServer.on("/getMac", HTTP_GET, std::bind(&WebServer::getMac, this));
-  moduleWebServer.on("/", HTTP_GET, std::bind(&WebServer::showInterface, this));    
-  moduleWebServer.on("/setSensor", HTTP_POST, std::bind(&WebServer::setSensor, this));
-  moduleWebServer.on("/setSocket", HTTP_POST, std::bind(&WebServer::setSocket, this));
-  moduleWebServer.on("/setSystem", HTTP_POST, std::bind(&WebServer::setSystem, this));
-  moduleWebServer.on("/setPHSensorCalibration", HTTP_POST, std::bind(&WebServer::setPHSensorCalibration, this));
-  moduleWebServer.on("/setTemperatureSensorCalibration", HTTP_POST, std::bind(&WebServer::setTemperatureSensorCalibration, this));
-  moduleWebServer.on("/reset", HTTP_GET, std::bind(&WebServer::reset, this));
+  moduleWebServer.on(F("/get"), HTTP_GET, std::bind(&WebServer::get, this));
+  moduleWebServer.on(F("/toggleFeedPause"), HTTP_POST, std::bind(&WebServer::toggleFeedPause, this));
+  moduleWebServer.on(F("/toggleAlarmSound"), HTTP_POST, std::bind(&WebServer::toggleAlarmSound, this));
+  moduleWebServer.on(F("/toggleAlarmAutoRecovery"), HTTP_POST, std::bind(&WebServer::toggleAlarmAutoRecovery, this));
+  moduleWebServer.on(F("/setAdmin"), HTTP_POST, std::bind(&WebServer::setAdmin, this));
+  moduleWebServer.on(F("/doLogout"), HTTP_GET, std::bind(&WebServer::doLogout, this));
+  moduleWebServer.on(F("/doUpdate"), HTTP_GET, std::bind(&WebServer::doUpdate, this));
+  moduleWebServer.on(F("/listNetworks"), HTTP_GET, std::bind(&WebServer::listNetworks, this)); 
+  moduleWebServer.on(F("/doLogin"), HTTP_POST, std::bind(&WebServer::doLogin, this));
+  moduleWebServer.on(F("/setWiFi"), HTTP_POST, std::bind(&WebServer::setWiFi, this));
+  moduleWebServer.on(F("/setApiKey"), HTTP_POST, std::bind(&WebServer::setApiKey, this));
+  moduleWebServer.on(F("/query"), HTTP_GET, std::bind(&WebServer::query, this));  
+  moduleWebServer.on(F("/getMac"), HTTP_GET, std::bind(&WebServer::getMac, this));
+  moduleWebServer.on(F("/"), HTTP_GET, std::bind(&WebServer::showInterface, this));    
+  moduleWebServer.on(F("/setSensor"), HTTP_POST, std::bind(&WebServer::setSensor, this));
+  moduleWebServer.on(F("/setSocket"), HTTP_POST, std::bind(&WebServer::setSocket, this));
+  moduleWebServer.on(F("/setSystem"), HTTP_POST, std::bind(&WebServer::setSystem, this));
+  moduleWebServer.on(F("/setPHSensorCalibration"), HTTP_POST, std::bind(&WebServer::setPHSensorCalibration, this));
+  moduleWebServer.on(F("/setTemperatureSensorCalibration"), HTTP_POST, std::bind(&WebServer::setTemperatureSensorCalibration, this));
+  moduleWebServer.on(F("/reset"), HTTP_GET, std::bind(&WebServer::reset, this));
 
+  // CORS preflight headers
+  moduleWebServer.onNotFound(std::bind(&WebServer::noOutput, this));
+  
   // start the web server
   moduleWebServer.begin();
 }

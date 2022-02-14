@@ -22,8 +22,6 @@
 
 #undef UPNP_DEBUG
 
-#define debugPrint(...)
-
 // current firmware version
 const int FIRMWARE_VERSION = 1223;
 
@@ -63,6 +61,9 @@ byte unused[16];
 // every 12 iterations (loop is executed every 5 seconds, times
 // 12 iterations, one data upload every 60 seconds).
 unsigned long iterations = 0;
+
+// boolean to hold if alarm will sound;
+bool alarm = false;
 
 // create objects from own classes
 WebServer webserver;
@@ -389,6 +390,43 @@ void loop() {
 
   // five seconds passed since last run
   if (currentTimestamp > (lastRunTimestamp + 5000))  {
+
+    // after at least a minute
+    if (iterations > 12) {
+        
+        // please note that the alarm boolean is only calculating if the alarm has to sound and
+        // not if that an alarm is raised. This is handled in the webserver code
+        
+        // alarm sound is toggled on?
+        if (webserver.alarmSoundOn) {
+
+           // iterate through all sensors and sockets
+          for (unsigned int iterator = 0; iterator < 5; iterator ++) {
+
+            // set boolean to true if one or more alarms raised
+            alarm |= webserver.sockets[iterator].alarmRaised | webserver.sensors[iterator].alarmRaised;
+          }
+          
+        } else {
+          
+          // sound is off, set alarm to false
+          alarm = false;
+        
+        }
+        
+        // alarm raised and sound on:
+        if (alarm) {
+          
+           // activate the speaker
+           i2cComm.processCommand(I2C_SET_ALARM_ON, unused, unused);
+
+        } else {
+
+          // deactivate the speaker
+          i2cComm.processCommand(I2C_SET_ALARM_OFF, unused, unused);
+        }
+    }
+    
 
     // if not connected
     if (WiFi.status() != WL_CONNECTED) {

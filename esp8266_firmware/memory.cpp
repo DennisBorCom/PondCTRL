@@ -133,7 +133,12 @@ void MemoryTools::hardReset() {
   writeMemory(EEPROM_MDNSRESPONDER, "pondctrl");
   writeCharToMemory(EEPROM_UPNP_PORT[0], 7777 >> 8);
   writeCharToMemory(EEPROM_UPNP_PORT[0] + 1, 7777 & 255);
-
+  writeCharToMemory(EEPROM_FEEDPAUSE_DURATION[0], 300 >> 8);
+  writeCharToMemory(EEPROM_FEEDPAUSE_DURATION[0] + 1, 300 & 255);
+  writeCharToMemory(EEPROM_ALARM_AUTORESET[0], 1);
+  writeCharToMemory(EEPROM_ALARM_SOUND[0], 0);
+  writeMemory(EEPROM_TIMESERVER_ADDRESS, "ntp.pool.org");
+  
   // disconnect active connections
   WiFi.disconnect();
 

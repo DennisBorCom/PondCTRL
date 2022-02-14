@@ -22,6 +22,8 @@
 // can be used by clients, and passed through to Pond[CTRL]™ by using
 // web queries. see WebServer::query for more details.
 
+#define I2C_SET_ALARM_ON                             9
+#define I2C_SET_ALARM_OFF                           10
 #define I2C_GET_SENSOR_VALUES                       53
 #define I2C_GET_SENSOR_PH1_NAME                     54
 #define I2C_GET_SENSOR_PH2_NAME                     55

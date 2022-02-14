@@ -23,21 +23,28 @@ void Sensor::setValue(unsigned int value) {
     valuesStored = 1;
   }
 
-  // currently at least one value is stored?
-  if (valuesStored > 0) {
-
-    // given value is more than 10% different to last value?
-    if ((value < (values[(valuesStored - 1)] * 0.90)) || (value > values[(valuesStored - 1)] * 1.10)) {
-      
-      // reject value (do nothing)
-      // relay switching can cause interference in sensor readings. this is why 
-      // sensor readings with big differences are filtered (not saved)
+/*
+  if (valuesStored == 0) {
+      values[0] = value;
+      valuesStored = 1;
       return;
-    }
   }
+*/
   
 
+  if (valuesStored > 0) {
 
+        // given value is more than 10% different to average value?
+        if ((value < values[(valuesStored - 1)] * 0.90) || (value > values[(valuesStored - 1)] * 1.10)) {
+          
+          // reject value (do nothing)
+          // relay switching can cause interference in sensor readings. this is why 
+          // sensor readings with big differences are filtered (not saved)
+          return;
+
+      }    
+  }
+  
   // increment through the value array
   for (unsigned int iterator = 1; iterator < NUMBEROFVALUES; iterator ++) {
       
@@ -73,8 +80,10 @@ void Sensor::setValue(unsigned int value) {
   // iterate through the number of values stored
   for (unsigned int iterator = 0; iterator < valuesStored; iterator ++) {
 
-    // add the current value to the total value
-    totalValue += values[iterator];
+       
+      // add the current value to the total value
+      totalValue += values[iterator];
+    
   }
 
   // return the calculated value (total value divided by the number of
