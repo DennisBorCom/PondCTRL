@@ -53,7 +53,7 @@ void Sensor::setValue(unsigned int value) {
      values[(iterator - 1)] = values[iterator];
   }
 
-  // less than 10 values stored?
+  // less than max values stored?
   if (valuesStored < NUMBEROFVALUES) {
 
     // increment the counter
