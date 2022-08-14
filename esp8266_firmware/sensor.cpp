@@ -86,7 +86,18 @@ void Sensor::setValue(unsigned int value) {
     
   }
 
-  // return the calculated value (total value divided by the number of
-  // values stored)
-  return totalValue / valuesStored;
+  // prevent division by zero error; check if divider is zero
+  // not zero?
+  if (valuesStored != 0) {
+    
+    // return the calculated value (total value divided by the number of
+    // values stored)
+    return totalValue / valuesStored;
+
+  // one or more values are zero
+  } else {
+
+    // return 0
+    return 0;
+  }
 }

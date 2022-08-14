@@ -23,7 +23,7 @@
 #undef UPNP_DEBUG
 
 // current firmware version
-const int FIRMWARE_VERSION = 1225;
+const int FIRMWARE_VERSION = 1226;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS
