@@ -357,7 +357,7 @@ void WebServer::setSocket() {
   } else {
 
     // parameter(s) missing?
-    if (!moduleWebServer.hasArg("socketindex") || !moduleWebServer.hasArg("name") || !moduleWebServer.hasArg("affectedbyfeedpause") || !moduleWebServer.hasArg("mode") || !moduleWebServer.hasArg("maxontime")) {
+    if (!moduleWebServer.hasArg("socketindex") || !moduleWebServer.hasArg("name") || !moduleWebServer.hasArg("affectedbymaintenance") || !moduleWebServer.hasArg("affectedbyfeedpause") || !moduleWebServer.hasArg("mode") || !moduleWebServer.hasArg("maxontime")) {
       
       // set status parameter to no, errno to 3 (invalid request)
       jsonObject.set("status", "no");
@@ -477,6 +477,43 @@ void WebServer::setSocket() {
 
       // send i2c command to microprocessor
       i2cComm.processCommand(commandByte, dataToPondCTRL, unused);
+
+      // now write to local memory
+
+      // get affected by maintenance settings (note: one byte for all sockets to use as less as possible memory)
+      char affectedByMaintenance = memTools.readCharFromMemory(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0]);
+
+      // socket is affected by maintenance?
+      if (moduleWebServer.arg("affectedbymaintenance") == "true") {
+
+        // set boolean to true
+        sockets[moduleWebServer.arg("socketindex").toInt()].affectedByMaintenance = true;
+
+        // feedback in json
+        jsonObject.set("affectedbymaintenance", true);
+        
+        // OR the bits 
+        affectedByMaintenance |= (1 << moduleWebServer.arg("socketindex").toInt());
+
+      // socket is not affected by maintenance?
+      } else {
+
+        // set boolean to false
+        sockets[moduleWebServer.arg("socketindex").toInt()].affectedByMaintenance = false;
+
+        // feedback in json
+        jsonObject.set("affectedbymaintenance", false);
+
+        // create an or-byte with the specific socket index subtracted
+        byte andByte = 255 - (1 << moduleWebServer.arg("socketindex").toInt());
+
+        // AND the bits
+        affectedByMaintenance &= andByte;
+        
+      }
+
+      // write the combined values to the memory
+      memTools.writeCharToMemory(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], affectedByMaintenance);
 
       // set status to ok
       jsonObject.set("status", "ok");
@@ -1086,6 +1123,7 @@ void WebServer::get() {
       jsonSocket.set("mode", sockets[iterator].mode);
       jsonSocket.set("override", sockets[iterator].override);
       jsonSocket.set("affectedbyfeedpause", sockets[iterator].affectedByFeedPause);
+      jsonSocket.set("affectedbymaintenance", sockets[iterator].affectedByMaintenance);
       jsonSocket.set("alarmraised", sockets[iterator].alarmRaised);
       jsonSocket.set("active", sockets[iterator].isActive);
 
@@ -1267,7 +1305,68 @@ void WebServer::toggleAlarmAutoRecovery() {
   // output json to client
   outputJSON(jsonOutput);
 }
-    
+
+void WebServer::toggleMaintenance() {
+  
+  // create a json object within a json buffer
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& jsonObject = jsonBuffer.createObject();
+
+  // check if the user is authorized
+
+  // not autorized
+  if (!isAuthorized()) {
+
+    // set status parameter to no, errno to 1 (login required)
+    jsonObject.set("status", "no");
+    jsonObject.set("errno", 1);
+
+  // authorized?
+  } else {
+
+    // no 'on' argument given?
+    if (!moduleWebServer.hasArg("on")) {
+     
+      // set status parameter to no, errno to 3 (invalid request)
+      jsonObject.set("status", "no");
+      jsonObject.set("errno", 3);
+
+    // 'on' argument given?
+    } else {
+
+      // set status parameter to ok
+      jsonObject.set("status", "ok");
+      
+      // on set to true?
+      if (moduleWebServer.arg("on") == "true") {
+
+        // activate feedpause
+        maintenance = true;
+
+      // on set to other value than true
+      } else {
+
+        // deactivate feedpause
+        maintenance = false;
+      }
+
+      // set json parameter 
+      jsonObject.set("maintenance", maintenance);
+
+      // force socket switching to activate or deactivate
+      // feed pause on sockets
+      forceSocketSwitching();
+    }
+  }
+
+  // output json output to string
+  String jsonOutput;
+  jsonObject.printTo(jsonOutput);
+  
+  // output json to client
+  outputJSON(jsonOutput);
+}
+
 /**
  * Toggles feed pause either on or off
  * 
@@ -1809,7 +1908,7 @@ void WebServer::switchSockets() {
   for (unsigned int iterator = 0; iterator < 5; iterator ++) {
 
     // socket not overridden
-    if (!sockets[iterator].override && !(sockets[iterator].affectedByFeedPause && feedPause)) {
+    if (!sockets[iterator].override && (!(sockets[iterator].affectedByFeedPause && feedPause)) && (!(sockets[iterator].affectedByMaintenance && maintenance))) {
 
       // socket mode always off?
       if (sockets[iterator].mode == SOCKET_MODE_ALWAYS_OFF) {
@@ -1909,6 +2008,20 @@ void WebServer::switchSockets() {
           toggleSocket(socketIterator, false);
         }
       }     
+    } else if (maintenance) {
+
+      // iterator through all sockets
+      for (unsigned int socketIterator = 0; socketIterator < 5; socketIterator ++) {
+
+        // affected by maintenance and not overridden
+        if (sockets[socketIterator].affectedByMaintenance && !sockets[socketIterator].override) {
+         
+          // turn the socket off
+          toggleSocket(socketIterator, false);
+        }
+      }     
+
+      
     }
   }
 
@@ -2579,6 +2692,7 @@ WebServer::WebServer() {
 
   // set all tarhet functions for http requests
   moduleWebServer.on(F("/get"), HTTP_GET, std::bind(&WebServer::get, this));
+  moduleWebServer.on(F("/toggleMaintenance"), HTTP_POST, std::bind(&WebServer::toggleMaintenance, this));
   moduleWebServer.on(F("/toggleFeedPause"), HTTP_POST, std::bind(&WebServer::toggleFeedPause, this));
   moduleWebServer.on(F("/toggleAlarmSound"), HTTP_POST, std::bind(&WebServer::toggleAlarmSound, this));
   moduleWebServer.on(F("/toggleAlarmAutoRecovery"), HTTP_POST, std::bind(&WebServer::toggleAlarmAutoRecovery, this));

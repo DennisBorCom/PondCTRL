@@ -4,6 +4,9 @@
 
 #include "i2c.h"
 
+// memorytools eeprom object
+MemoryTools MemTools;
+
 /**
  * Checks data integrity. If all bytes are 255, something went wrong
  * on the i2c bus which can be caused by multiple things.
@@ -248,6 +251,7 @@ void I2C::processCommand(byte command, byte dataTransmitted[16], byte dataReceiv
 
           // set socket settings
           sockets[(command - I2C_GET_SOCKET1_SETTINGS)].affectedByFeedPause = dataReceived[0];
+          sockets[(command - I2C_GET_SOCKET1_SETTINGS)].affectedByMaintenance = (MemTools.readCharFromMemory(MemTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0]) >> (command - I2C_GET_SOCKET1_SETTINGS)) & 1;
           sockets[(command - I2C_GET_SOCKET1_SETTINGS)].mode = dataReceived[1];
           sockets[(command - I2C_GET_SOCKET1_SETTINGS)].maxOnTime = (dataReceived[2] << 8) + dataReceived[3];
 

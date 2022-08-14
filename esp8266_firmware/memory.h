@@ -37,6 +37,9 @@ class MemoryTools {
                                                           // second two bytes represent negative correction (max 12 hours * 3600 seconds)
     const word EEPROM_TIMESERVER_ADDRESS[2] = {294, 64};    // timeserver address, default is pool.ntp.org
     const word EEPROM_UPNP_PORT[2] = { 358, 2};              // externe upnp poort (0-65535) 
+
+    // custom socket settings: these settings are not stored on the atmega but on the ESP instead.
+    const word EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[2] = {360, 1};   // 1 byte to hold if socket is affected by maintenance
     
     // public function declarations
     void hardReset();

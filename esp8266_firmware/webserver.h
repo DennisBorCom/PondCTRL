@@ -93,6 +93,9 @@ class WebServer {
     // boolean to hold if a feedpause is active
     bool feedPause = false;
 
+    // boolean to hold if maintenance is active
+    bool maintenance = false;
+
     // boolean to hold if sensor alarm auto recovery is enabled
     bool alarmAutoRecovery = false;
 
@@ -114,6 +117,7 @@ class WebServer {
     void calculateSocketState(unsigned int socketIndex, unsigned int sensorIndex, int modeSet, int requiredState);
     void detectSocketWarnings();
     void toggleFeedPause();
+    void toggleMaintenance();
     void toggleAlarmSound();
     void toggleAlarmAutoRecovery();
     void setCORSHeaders();

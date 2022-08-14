@@ -40,8 +40,11 @@ struct Socket {
   // bool to hold if socket is overridden
   bool override = false;
 
-  // bool to holf if socket is affected by feed pause
+  // boolean to hold if socket is affected by feed pause
   bool affectedByFeedPause = false;
+
+  // boolean to hold if socket is affected by maintenance
+  bool affectedByMaintenance = false;
 
   // bool to hold if alarm raised, default false
   bool alarmRaised = false;

@@ -1,7 +1,7 @@
 /**
  * Pond[CTRL]™ WiFi module firmware, © Copyright Dennis Bor, all rights reserved. Pond[CTRL]™ is a trademark of Dennis Bor. 
  *
- * Required ArduinoJson Version 5.13.4 and custom TinyUPnP (with both internal and external port support, can by acquired on request
+ * Requires ArduinoJson Version 5.13.4 and custom TinyUPnP (with both internal and external port support, can by acquired on request
  * at dennis@dennisbor.com).
  */
 
@@ -23,7 +23,7 @@
 #undef UPNP_DEBUG
 
 // current firmware version
-const int FIRMWARE_VERSION = 1226;
+const int FIRMWARE_VERSION = 1244;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS
@@ -301,7 +301,7 @@ void setup(void) {
      }
 
      // send request to i2c bus
-     i2cComm.processCommand(requiredData[iterator], unused, i2cData, webserver.sensors, webserver. sockets);
+     i2cComm.processCommand(requiredData[iterator], unused, i2cData, webserver.sensors, webserver.sockets);
 
       // data integrity check failed?
       if (!i2cComm.checkDataIntegrity(i2cData)) {
