@@ -1011,6 +1011,7 @@ void WebServer::get() {
     jsonObject.set("wireless_hostname", module_mdns_hostname);
     jsonObject.set("feedpause", feedPause);
     jsonObject.set("feedpause_duration", feedpauseDuration);
+    jsonObject.set("maintenance", maintenance);
     jsonObject.set("timezone_offset", timezoneOffset);
     jsonObject.set("alarmsoundon", alarmSoundOn);
     jsonObject.set("alarmautorecovery", alarmAutoRecovery);
