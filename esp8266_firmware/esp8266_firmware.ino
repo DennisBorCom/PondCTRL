@@ -23,7 +23,7 @@
 #undef UPNP_DEBUG
 
 // current firmware version
-const int FIRMWARE_VERSION = 1244;
+const int FIRMWARE_VERSION = 1245;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS
@@ -266,6 +266,8 @@ void setup(void) {
   webserver.setGUICredentials(memTools.readMemory(memTools.EEPROM_GUI_USERNAME), memTools.readMemory(memTools.EEPROM_GUI_PASSWORD));
   webserver.setOtherSettings(memTools.readMemory(memTools.EEPROM_APIKEY), memTools.readMemory(memTools.EEPROM_ALARM_SOUND).toInt(), memTools.readMemory(memTools.EEPROM_ALARM_AUTORESET).toInt(), feedpauseDuration, timezoneOffset, currentTimeserver, upnpPort);
   webserver.setFirmwareVersion(FIRMWARE_VERSION);
+  webserver.setMaintenance(memTools.readCharFromMemory(memTools.EEPROM_MAINTENANCE[0]));
+  webserver.setFeedPause(memTools.readCharFromMemory(memTools.EEPROM_FEEDPAUSE[0]));
 
   // set debug information (for now: reset reason)
   webserver.setCustomData(String(ESP.getResetInfoPtr()->reason));

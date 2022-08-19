@@ -1344,11 +1344,17 @@ void WebServer::toggleMaintenance() {
         // activate feedpause
         maintenance = true;
 
+        // store state in EEPROM
+        memTools.writeCharToMemory(memTools.EEPROM_MAINTENANCE[0], 1);
+
       // on set to other value than true
       } else {
 
         // deactivate feedpause
         maintenance = false;
+
+        // store state in EEPROM
+        memTools.writeCharToMemory(memTools.EEPROM_MAINTENANCE[0], 0);
       }
 
       // set json parameter 
@@ -1413,11 +1419,17 @@ void WebServer::toggleFeedPause() {
         // activate feedpause
         feedPause = true;
 
+        // write state to memory
+        memTools.writeCharToMemory(memTools.EEPROM_FEEDPAUSE[0], 1);
+
       // on set to other value than true
       } else {
 
         // deactivate feedpause
         feedPause = false;
+
+        // write state to memory
+        memTools.writeCharToMemory(memTools.EEPROM_FEEDPAUSE[0], 0);
       }
 
       // set json parameter 
@@ -1501,6 +1513,22 @@ void WebServer::doUpdate() {
   }
 }
 
+/**
+ * Sets feedpause boolean to given value
+ */
+void WebServer::setFeedPause(char mode) {
+
+  // set mode
+  feedPause = mode;
+}
+/**
+ * Sets maintenance boolean to given value
+ */
+void WebServer::setMaintenance(char mode) {
+  
+  // set mode
+  maintenance = mode;
+}
 
 /**
  * Send empty response

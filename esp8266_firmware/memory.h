@@ -40,6 +40,9 @@ class MemoryTools {
 
     // custom socket settings: these settings are not stored on the atmega but on the ESP instead.
     const word EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[2] = {360, 1};   // 1 byte to hold if socket is affected by maintenance
+
+    const word EEPROM_MAINTENANCE[2] = {361, 1};   // 1 byte to hold if maintenance mode is activated or not
+    const word EEPROM_FEEDPAUSE[2] = {362, 1};      // 1 byte to hold if feedpause is activated or not
     
     // public function declarations
     void hardReset();

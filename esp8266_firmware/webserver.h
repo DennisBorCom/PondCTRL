@@ -154,6 +154,8 @@ class WebServer {
     void setFirmwareUpdateVersion(unsigned int versionNumber);
     void doUpdate();
     void checkFeedPause();
+    void setMaintenance(char mode);
+    void setFeedPause(char mode);
     void setApiKey();
     void setUptime(unsigned long timestamp);
     unsigned int getFirmwareUpdateVersion();
@@ -161,6 +163,7 @@ class WebServer {
     int getTimezoneOffset();
     String getTimeserver();
     unsigned int getUPnPPort();
+    
 
     WebServer();
     
