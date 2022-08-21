@@ -214,51 +214,8 @@ void I2C::processCommand(byte command, byte dataTransmitted[16], byte dataReceiv
          // sensor index is calculated based on memory offset
          
          // set sensor name, converting the byte array to a string 
-         sensors[(command - I2C_GET_SENSOR_PH1_NAME)].name = byteArrayToString(dataReceived, 16);
+        sensors[(command - I2C_GET_SENSOR_PH1_NAME)].name = byteArrayToString(dataReceived, 16);
       }
-
-      // socket names requested
-      // one request per socket is required (names can consist of 1-16 characters)
-      //
-      // the byte arrary layout is simple: character 0 = byte 0, character 1 = byte 1 ...
-      //
-      if ((command >= I2C_GET_SOCKET1_NAME) && (command <= I2C_GET_SOCKET5_NAME)) {
-
-          // socket index is calculated based on memory offset
-
-          // set socket name, converting the byte array to a string
-          sockets[(command - I2C_GET_SOCKET1_NAME)].name = byteArrayToString(dataReceived, 16);
-      }
-
-      // socket values and alarms requested
-      // one request per socket is required. currently only the current state and alarm status are
-      // processed, but the returned data contains more. see below for more information.
-      // 
-      // the byte array layout is:
-      //
-      // [ 0] affected by feed pause  
-      // [ 1] socket mode
-      // [ 2] max on time >> 8 
-      // [ 3] max on time & 255 
-      // [ 4] current state 
-      // [ 5] alarm raised --> unused since the wifi module is now calculating alarms
-      //
-      // to calculate max on time use:
-      //    (byte[2] << 8) + byte[3]
-      if ((command >= I2C_GET_SOCKET1_SETTINGS) && (command <= I2C_GET_SOCKET5_SETTINGS)) {
-
-          // socket index is calculated based on memory offset
-
-          // set socket settings
-          sockets[(command - I2C_GET_SOCKET1_SETTINGS)].affectedByFeedPause = dataReceived[0];
-          sockets[(command - I2C_GET_SOCKET1_SETTINGS)].affectedByMaintenance = (MemTools.readCharFromMemory(MemTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0]) >> (command - I2C_GET_SOCKET1_SETTINGS)) & 1;
-          sockets[(command - I2C_GET_SOCKET1_SETTINGS)].mode = dataReceived[1];
-          sockets[(command - I2C_GET_SOCKET1_SETTINGS)].maxOnTime = (dataReceived[2] << 8) + dataReceived[3];
-
-          // empty alarm byte as the wifi module is now calculating alarms
-          // instead of the microprocessor
-          dataReceived[5] = 0;
-      }   
 }
 
 /**

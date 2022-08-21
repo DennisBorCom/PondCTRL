@@ -1,2 +1,5 @@
 publish.sh
+publish.bat
 esp8266_firmware.ino.generic.bin
+firmware.tar.gz
+firmware.version

@@ -49,8 +49,8 @@
 #define I2C_SET_SOCKET1_ON                          99
 #define I2C_SET_SENSOR_PH1_NAME                     64
 #define I2C_SET_SENSOR_PH1_VALUES                   65
-#define I2C_SET_SOCKET1_NAME                        74
-#define I2C_SET_SOCKET1_VALUES                      79
+//#define I2C_SET_SOCKET1_NAME                        74
+//#define I2C_SET_SOCKET1_VALUES                      79
 #define I2C_SET_PH1_CALIBRATION4                    29
 #define I2C_SET_PH1_CALIBRATION7                    30
 #define I2C_SET_PH1_CALIBRATIONRESET                97

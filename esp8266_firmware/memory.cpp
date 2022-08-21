@@ -12,7 +12,7 @@
  * 
  * @return          this function does not produce a return value
  */
-void MemoryTools::writeCharToMemory(unsigned int offset, char data) {
+void MemoryTools::writeChar(unsigned int offset, char data) {
   
   // write char to memory
   EEPROM.write(offset, data);
@@ -26,7 +26,7 @@ void MemoryTools::writeCharToMemory(unsigned int offset, char data) {
  * 
  * @return          returns the char at offset
  */
-char MemoryTools::readCharFromMemory(unsigned int offset) {
+char MemoryTools::read(unsigned int offset) {
 
   // read char and return
   return EEPROM.read(offset);
@@ -40,26 +40,86 @@ char MemoryTools::readCharFromMemory(unsigned int offset) {
  * 
  * @return          this function does not produce a return value
  */
-void MemoryTools::writeMemory(const word parameter[2], String data) {
+void MemoryTools::write(const word parameter[2], String data) {
 
+  // write to memory
+  write(parameter[0], parameter[1], data);
+}
+
+
+/**
+ * Writes data to the EEPROM memory 
+ * 
+ * @param           offset            EEPROM address offset  
+ * @param           length            length to write
+ * @param           data              data to write
+ * 
+ * @return          this function does not produce a return value
+ */
+void MemoryTools::write(unsigned int offset, unsigned int length, String data) {
+  
   // iterate the number of times specified in the parameter array (second value, index 1)
-  for (int i = 0; i < parameter[1]; ++i) {
+  for (int i = 0; i < length; ++i) {
     
     // data available at this position?
     if (i < data.length()) {
       
       // yes, write the current character to the EEPROM at the calculated offset
-      EEPROM.write(parameter[0] + i, data[i]);
+      EEPROM.write(offset + i, data[i]);
 
     } else {
 
       // no, write zero value
-      EEPROM.write(parameter[0] + i, 0);
+      EEPROM.write(offset + i, 0);
     }
   }
 
   // commit changes to EEPROM
   EEPROM.commit();
+}
+
+/**
+ * Returns the bit value from a combined byte (used for multiple settings stored in one single byte)
+ * 
+ * @return          bit value
+ */
+char MemoryTools::getBitFromCombinedByte(unsigned int memoryOffset, unsigned int index) {
+
+  // read byte from memory
+  char memoryByte = read(memoryOffset);
+
+  // bitshift index right
+  memoryByte = memoryByte >> index;
+  
+  // return bit value
+  return memoryByte &= 1;
+}
+
+/**
+ * Sets a bit in a combined byte (used for multiple settings stored in one single byte)
+ */
+void MemoryTools::setBitForCombinedByte(unsigned int memoryOffset, unsigned int index, char value) {
+
+  // read byte from memory
+  char memoryByte = read(memoryOffset);
+
+  // bit 1 (true)
+  if (value) {
+
+    // bitwise OR the value 
+    memoryByte |= (1 << index);
+    
+  } else {
+
+    // distract the bit value from 255
+    byte andByte = 255 - (1 << index);
+
+    // bitwise AND the value
+    memoryByte &= andByte;
+  }
+
+  // write back the value to memory
+  write(memoryOffset, memoryByte);
 }
 
 /**
@@ -87,17 +147,18 @@ void MemoryTools::checkFirstRun() {
 /**
  * Writes data to the EEPROM memory
  * 
- * @param           parameter               array with mempry offset and length 
+ * @param           memoryOffset               EEPROM offset address
+ * @param           length                     length to read
  * 
  * @return          the string, read from memory
  */
-String MemoryTools::readMemory(const word parameter[2]) {
-
+String MemoryTools::read(unsigned int offset, unsigned int length) {
+  
   // empty string to store the value in
   String value;
 
   // iterate the number of times specified in the parameter array (second value, index 1)
-  for (int i = parameter[0]; i < (parameter[0] + parameter[1]); ++i) {
+  for (int i = offset; i < (offset + length); ++i) {
     
     // byte value at current position higher than zero?
     if (EEPROM.read(i) > 0) {
@@ -111,6 +172,50 @@ String MemoryTools::readMemory(const word parameter[2]) {
   return value;
 }
 
+/**
+ * Writes data to the EEPROM memory
+ * 
+ * @param           parameter               array with mempry offset and length 
+ * 
+ * @return          the string, read from memory
+ */
+String MemoryTools::read(const word parameter[2]) {
+
+  // read from memory
+  return read(parameter[0], parameter[1]);
+  
+}
+
+
+/**
+ * Writes an unsigned long value to EEPROM memory
+ * 
+ * @param           offset                offset in memory to write to
+ * @param           value                 value to write
+ * 
+ * @return          this function does not produce a return value
+ */
+void MemoryTools::write(unsigned int offset, unsigned long value) {
+
+  // write unsigned long to four bytes
+  writeChar(offset, ((value >> 24) & 255));
+  writeChar(offset + 1, ((value >> 16) & 255));
+  writeChar(offset + 2, ((value >> 8) & 255));
+  writeChar(offset + 3, (value & 255));
+}
+
+/**
+ * Reads an unsigned long value from memory
+ * 
+ * @param           offset                offset in memory to read from
+ * 
+ * @return          unsigned long value
+ */
+unsigned long MemoryTools::readUnsignedLong(unsigned int offset) {
+
+    // return unsigned long value
+    return read(offset + 3) + (read(offset + 2) << 8) + (read(offset + 1) << 16) + (read(offset) << 24);
+}
 
 /**
  * Performs a hard reset (write defaults to memory)
@@ -120,24 +225,32 @@ String MemoryTools::readMemory(const word parameter[2]) {
 void MemoryTools::hardReset() {
 
   // clear mempry
-  clearMemory();
+  clear();
 
-  // write defaults to memory:
-  // - access point ssid and passphrase empty
-  // - gui username and password 'admin'
-  // - mdns responder to pondctrl (resulting in pondctrl.local)    
-  writeMemory(EEPROM_SSID, "");
-  writeMemory(EEPROM_PASSPHRASE, "");
-  writeMemory(EEPROM_GUI_USERNAME, "admin");
-  writeMemory(EEPROM_GUI_PASSWORD, "admin");
-  writeMemory(EEPROM_MDNSRESPONDER, "pondctrl");
-  writeCharToMemory(EEPROM_UPNP_PORT[0], 7777 >> 8);
-  writeCharToMemory(EEPROM_UPNP_PORT[0] + 1, 7777 & 255);
-  writeCharToMemory(EEPROM_FEEDPAUSE_DURATION[0], 300 >> 8);
-  writeCharToMemory(EEPROM_FEEDPAUSE_DURATION[0] + 1, 300 & 255);
-  writeCharToMemory(EEPROM_ALARM_AUTORESET[0], 1);
-  writeCharToMemory(EEPROM_ALARM_SOUND[0], 0);
-  writeMemory(EEPROM_TIMESERVER_ADDRESS, "ntp.pool.org");
+  // write defaults to memory: 
+  write(EEPROM_SSID, "");                                               // last known access point SSID will be blank
+  write(EEPROM_PASSPHRASE, "");                                         // last known access point password will be blank
+  write(EEPROM_GUI_USERNAME, "admin");                                  // default GUI username is 'admin'
+  write(EEPROM_GUI_PASSWORD, "admin");                                  // default GUI password is 'admin'
+  write(EEPROM_MDNSRESPONDER, "pondctrl");                              // default mDNS responder is 'pondctrl' (pondctrl.local)
+  writeChar(EEPROM_UPNP_PORT[0], 7777 >> 8);                          // default upnp port is 7777 (needs 2 bytes for storage)
+  writeChar(EEPROM_UPNP_PORT[0] + 1, 7777 & 255);
+  writeChar(EEPROM_FEEDPAUSE_DURATION[0], 300 >> 8);                  // feed pause default duration is 300 seconds (needs 2 bytes for storage)
+  writeChar(EEPROM_FEEDPAUSE_DURATION[0] + 1, 300 & 255);
+  writeChar(EEPROM_ALARM_AUTORESET[0], 1);                            // alarm autoreset enabled by default
+  writeChar(EEPROM_ALARM_SOUND[0], 0);                                // alarm sound disabled by default
+  writeChar(EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], 0);              // no sockets are affected by maintenance by defeault
+  write(EEPROM_TIMESERVER_ADDRESS, "ntp.pool.org");                     // default time server address 'ntp.pool.org'
+  write(EEPROM_SOCKETS_NAME[0], 32, "Socket #1");                       // default socket names (Socket #1 - Socket #5)
+  write(EEPROM_SOCKETS_NAME[0] + 32, 32, "Socket #2");
+  write(EEPROM_SOCKETS_NAME[0] + 64, 32, "Socket #3");
+  write(EEPROM_SOCKETS_NAME[0] + 96, 32, "Socket #4");
+  write(EEPROM_SOCKETS_NAME[0] + 128, 32, "Socket #5");   
+  write(EEPROM_SOCKETS_AGE[0], (unsigned long)0);                                    // socket age (seconds activated)
+  write(EEPROM_SOCKETS_AGE[0] + 4, (unsigned long)0);
+  write(EEPROM_SOCKETS_AGE[0] + 8, (unsigned long)0);
+  write(EEPROM_SOCKETS_AGE[0] + 12, (unsigned long)0);
+  write(EEPROM_SOCKETS_AGE[0] + 16, (unsigned long)0);
   
   // disconnect active connections
   WiFi.disconnect();
@@ -151,7 +264,7 @@ void MemoryTools::hardReset() {
  * 
  * @return          this function does not produce a return value
  */
-void MemoryTools::clearMemory() {
+void MemoryTools::clear() {
 
   // loop through all EEPROM bytes (4096)
   for (int i = 0; i < 4096; ++i)

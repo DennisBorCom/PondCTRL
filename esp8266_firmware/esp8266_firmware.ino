@@ -23,14 +23,14 @@
 #undef UPNP_DEBUG
 
 // current firmware version
-const int FIRMWARE_VERSION = 1245;
+const int FIRMWARE_VERSION = 1303;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS
 // server to forward all traffic to the module's webinterface for
 // WiFi configuration
-DNSServer dnsServer;
-
+DNSServer dnsServer; 
+ 
 // default AP address
 IPAddress accessPointIPAddress(192,168,4,1);
 
@@ -230,11 +230,11 @@ void setup(void) {
   memTools.checkFirstRun();
 
   // read ssid, passphrase and mdns responder name from memory
-  ssid = memTools.readMemory(memTools.EEPROM_SSID);
+  ssid = memTools.read(memTools.EEPROM_SSID);
    
-  passphrase = memTools.readMemory(memTools.EEPROM_PASSPHRASE);
+  passphrase = memTools.read(memTools.EEPROM_PASSPHRASE);
   
-  mdns_hostname = memTools.readMemory(memTools.EEPROM_MDNSRESPONDER);  
+  mdns_hostname = memTools.read(memTools.EEPROM_MDNSRESPONDER);  
 
   // add and start a mdns responder for tcp port 80
   MDNS.addService("http","tcp",80);
@@ -247,27 +247,26 @@ void setup(void) {
   // offset is stored in 4 bytes:
   // bytes 0-1: positive offset value in seconds
   // bytes 2-3: negative offset value in seconds
-  String timezoneOffsetFromEEPROM = memTools.readMemory(memTools.EEPROM_TIMESERVER_UTC_OFFSET);
+  String timezoneOffsetFromEEPROM = memTools.read(memTools.EEPROM_TIMESERVER_UTC_OFFSET);
 
   // calculate timezone offset
-  int timezoneOffset = ((memTools.readCharFromMemory(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0]) << 8) + memTools.readCharFromMemory(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 1)) - ((memTools.readCharFromMemory(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 2) << 8) + memTools.readCharFromMemory(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 3));
+  int timezoneOffset = ((memTools.read(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0]) << 8) + memTools.read(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 1)) - ((memTools.read(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 2) << 8) + memTools.read(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 3));
 
   // get feedpause duration from memory
-  unsigned int feedpauseDuration = (memTools.readCharFromMemory(memTools.EEPROM_FEEDPAUSE_DURATION[0]) << 8) + (memTools.readCharFromMemory(memTools.EEPROM_FEEDPAUSE_DURATION[0] + 1));
+  unsigned int feedpauseDuration = (memTools.read(memTools.EEPROM_FEEDPAUSE_DURATION[0]) << 8) + (memTools.read(memTools.EEPROM_FEEDPAUSE_DURATION[0] + 1));
 
   // get current timeserver
-  currentTimeserver =  memTools.readMemory(memTools.EEPROM_TIMESERVER_ADDRESS);
+  currentTimeserver =  memTools.read(memTools.EEPROM_TIMESERVER_ADDRESS);
 
   // get upnp port from memory
-  unsigned int upnpPort = (memTools.readCharFromMemory(memTools.EEPROM_UPNP_PORT[0]) << 8) + (memTools.readCharFromMemory(memTools.EEPROM_UPNP_PORT[0] + 1));
+  unsigned int upnpPort = (memTools.read(memTools.EEPROM_UPNP_PORT[0]) << 8) + (memTools.read(memTools.EEPROM_UPNP_PORT[0] + 1));
 
   // pass all required data to webserver
   webserver.setSSIDPassPhraseAndMDSNHostname(ssid, passphrase, mdns_hostname);
-  webserver.setGUICredentials(memTools.readMemory(memTools.EEPROM_GUI_USERNAME), memTools.readMemory(memTools.EEPROM_GUI_PASSWORD));
-  webserver.setOtherSettings(memTools.readMemory(memTools.EEPROM_APIKEY), memTools.readMemory(memTools.EEPROM_ALARM_SOUND).toInt(), memTools.readMemory(memTools.EEPROM_ALARM_AUTORESET).toInt(), feedpauseDuration, timezoneOffset, currentTimeserver, upnpPort);
+  webserver.setGUICredentials(memTools.read(memTools.EEPROM_GUI_USERNAME), memTools.read(memTools.EEPROM_GUI_PASSWORD));
+  webserver.setOtherSettings(memTools.read(memTools.EEPROM_APIKEY), memTools.read(memTools.EEPROM_ALARM_SOUND).toInt(), memTools.read(memTools.EEPROM_ALARM_AUTORESET).toInt(), feedpauseDuration, timezoneOffset, currentTimeserver, upnpPort);
   webserver.setFirmwareVersion(FIRMWARE_VERSION);
-  webserver.setMaintenance(memTools.readCharFromMemory(memTools.EEPROM_MAINTENANCE[0]));
-  webserver.setFeedPause(memTools.readCharFromMemory(memTools.EEPROM_FEEDPAUSE[0]));
+  webserver.loadSettingsFromMemory();
 
   // set debug information (for now: reset reason)
   webserver.setCustomData(String(ESP.getResetInfoPtr()->reason));

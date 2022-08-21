@@ -7,6 +7,9 @@
 // new ESP8266WebServer object at port 80 
 ESP8266WebServer moduleWebServer(80); 
 
+
+
+
 /**
  * Checks for active feed pause with expiired time (specified time in seconds)
  * 
@@ -92,6 +95,9 @@ void WebServer::reset() {
 
   // reset accepter?
   if (doReset) {
+
+    // update socket ages
+    updateSocketAge();
 
     // delay of one second to prevent early client disconnecting
     delay(1000);
@@ -374,35 +380,9 @@ void WebServer::setSocket() {
     // request valid?     
     } else {
 
-      // store name on microprocessor and set name in local variable
-
-      // byte array to hold sensor name (and unused array from answer from I2C bus)
-      byte dataToPondCTRL[16], unused[16];
-
-      // iterate 16 times (max name length)
-      for (unsigned int iterator = 0; iterator < 16; iterator ++) {
-
-        // length larger than current iterated character?
-        if (moduleWebServer.arg("name").length() > iterator) {
-
-          // copy character to array
-          dataToPondCTRL[iterator] = moduleWebServer.arg("name")[iterator];
-        
-        // current index larger than name length
-        } else {
-
-          // add zero to array
-          dataToPondCTRL[iterator] = 0;
-        }    
-      }
-
-      // calculate command byte using an offset (I2C_SET_SOCKET1_NAME + socketindex
-      // the five command bytes to store names are 74, 75, 76, 77 and 78
-      unsigned int commandByte = I2C_SET_SOCKET1_NAME + moduleWebServer.arg("socketindex").toInt();
-
-      // send i2c command to microprocessor
-      i2cComm.processCommand(commandByte, dataToPondCTRL, unused);
-
+      // write name to memory
+      memTools.write(memTools.EEPROM_SOCKETS_NAME[0] + (moduleWebServer.arg("socketindex").toInt() * 32), 32, moduleWebServer.arg("name"));
+      
       // set name in local variables
       sockets[moduleWebServer.arg("socketindex").toInt()].name = moduleWebServer.arg("name");
 
@@ -416,30 +396,30 @@ void WebServer::setSocket() {
       // affected by feedpause set to true?
       if (moduleWebServer.arg("affectedbyfeedpause") == "true") {
 
-        // set byte to 1
-        dataToPondCTRL[0] = 1;
-
         // feedback in json
         jsonObject.set("affectedbyfeedpause", true);
 
         // set local variable
         sockets[moduleWebServer.arg("socketindex").toInt()].affectedByFeedPause = true;
 
+        // set the bit value
+        memTools.setBitForCombinedByte(memTools.EEPROM_SOCKETS_AFFECTEDBYFEEDPAUSE[0], moduleWebServer.arg("socketindex").toInt(), 1);
+
       // not affected by feed pause?
       } else {
-
-        // set byte to 0
-        dataToPondCTRL[0] = 0;
 
         // feedback in json
         jsonObject.set("affectedbyfeedpause", false);
 
         // set local variable
         sockets[moduleWebServer.arg("socketindex").toInt()].affectedByFeedPause = false;
+
+        // set the bit value
+        memTools.setBitForCombinedByte(memTools.EEPROM_SOCKETS_AFFECTEDBYFEEDPAUSE[0], moduleWebServer.arg("socketindex").toInt(), 0);
       }
 
-      // byte 1: socket mode
-      dataToPondCTRL[1] = moduleWebServer.arg("mode").toInt();
+      // write socket mode to memory
+      memTools.writeChar(memTools.EEPROM_SOCKETS_MODE[0] + moduleWebServer.arg("socketindex").toInt(), moduleWebServer.arg("mode").toInt());
 
       // set local variable
       sockets[moduleWebServer.arg("socketindex").toInt()].mode = moduleWebServer.arg("mode").toInt();
@@ -447,9 +427,9 @@ void WebServer::setSocket() {
       // feedback in json
       jsonObject.set("mode", moduleWebServer.arg("mode").toInt());
 
-      // byte 2 + 3: max on time
-      dataToPondCTRL[2] = moduleWebServer.arg("maxontime").toInt() >> 8;
-      dataToPondCTRL[3] = moduleWebServer.arg("maxontime").toInt() & 255;
+      // write max on time to memory
+      memTools.writeChar(memTools.EEPROM_SOCKETS_MAX_ON_TIME[0] + (moduleWebServer.arg("socketindex").toInt() * 2), moduleWebServer.arg("maxontime").toInt() >> 8);
+      memTools.writeChar(memTools.EEPROM_SOCKETS_MAX_ON_TIME[0] + (moduleWebServer.arg("socketindex").toInt() * 2) + 1, moduleWebServer.arg("maxontime").toInt() & 255);
 
       // set local variable
       sockets[moduleWebServer.arg("socketindex").toInt()].maxOnTime = moduleWebServer.arg("maxontime").toInt();
@@ -457,31 +437,10 @@ void WebServer::setSocket() {
       // feedback in json
       jsonObject.set("maxontime", moduleWebServer.arg("maxontime").toInt());
 
-      // fill unused bytes with zeroes
-      dataToPondCTRL[4] = 0;
-      dataToPondCTRL[5] = 0;
-      dataToPondCTRL[6] = 0;
-      dataToPondCTRL[7] = 0;
-      dataToPondCTRL[8] = 0;
-      dataToPondCTRL[9] = 0;
-      dataToPondCTRL[10] = 0;
-      dataToPondCTRL[11] = 0;
-      dataToPondCTRL[12] = 0;
-      dataToPondCTRL[13] = 0;
-      dataToPondCTRL[14] = 0;
-      dataToPondCTRL[15] = 0;
-
-      // calculate command byte using an offset (I2C_SET_SOCKET1_VALUES + socketindex
-      // the five command bytes to store values are 79, 80, 81, 82 and 83
-      commandByte = I2C_SET_SOCKET1_VALUES + moduleWebServer.arg("socketindex").toInt();
-
-      // send i2c command to microprocessor
-      i2cComm.processCommand(commandByte, dataToPondCTRL, unused);
-
       // now write to local memory
 
       // get affected by maintenance settings (note: one byte for all sockets to use as less as possible memory)
-      char affectedByMaintenance = memTools.readCharFromMemory(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0]);
+      char affectedByMaintenance = memTools.read(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0]);
 
       // socket is affected by maintenance?
       if (moduleWebServer.arg("affectedbymaintenance") == "true") {
@@ -491,9 +450,9 @@ void WebServer::setSocket() {
 
         // feedback in json
         jsonObject.set("affectedbymaintenance", true);
-        
-        // OR the bits 
-        affectedByMaintenance |= (1 << moduleWebServer.arg("socketindex").toInt());
+
+        // set the bit value
+        memTools.setBitForCombinedByte(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], moduleWebServer.arg("socketindex").toInt(), 1);
 
       // socket is not affected by maintenance?
       } else {
@@ -504,16 +463,10 @@ void WebServer::setSocket() {
         // feedback in json
         jsonObject.set("affectedbymaintenance", false);
 
-        // create an or-byte with the specific socket index subtracted
-        byte andByte = 255 - (1 << moduleWebServer.arg("socketindex").toInt());
-
-        // AND the bits
-        affectedByMaintenance &= andByte;
+        // set the bit value
+        memTools.setBitForCombinedByte(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], moduleWebServer.arg("socketindex").toInt(), 0);
         
       }
-
-      // write the combined values to the memory
-      memTools.writeCharToMemory(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], affectedByMaintenance);
 
       // set status to ok
       jsonObject.set("status", "ok");
@@ -567,15 +520,15 @@ void WebServer::setSystem() {
       // feedpause duration is stored as a 2 byte value (value >> 8, value & 255)
 
       // write feed pause duration to memory
-      memTools.writeCharToMemory(memTools.EEPROM_FEEDPAUSE_DURATION[0], feedpauseDuration >> 8);
-      memTools.writeCharToMemory((memTools.EEPROM_FEEDPAUSE_DURATION[0] + 1), feedpauseDuration & 255);
+      memTools.writeChar(memTools.EEPROM_FEEDPAUSE_DURATION[0], feedpauseDuration >> 8);
+      memTools.writeChar((memTools.EEPROM_FEEDPAUSE_DURATION[0] + 1), feedpauseDuration & 255);
 
       // get port number from parameters
       upnpPort = moduleWebServer.arg("upnp_port").toInt();
       
       // write port number to memory
-      memTools.writeCharToMemory(memTools.EEPROM_UPNP_PORT[0], upnpPort >> 8);
-      memTools.writeCharToMemory((memTools.EEPROM_UPNP_PORT[0] + 1), upnpPort & 255);
+      memTools.writeChar(memTools.EEPROM_UPNP_PORT[0], upnpPort >> 8);
+      memTools.writeChar((memTools.EEPROM_UPNP_PORT[0] + 1), upnpPort & 255);
 
       // timezone offset is stored as a 4-byte value, split in 2 2-byte values.
       // byte 0 - 1 = (positive >> 8, positive & 255)
@@ -588,12 +541,12 @@ void WebServer::setSystem() {
          unsigned int negativeValue = moduleWebServer.arg("timezone_offset").substring(1).toInt();
 
          // first two bytes are empty (negative means no positive)
-         memTools.writeCharToMemory(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0],  0);
-         memTools.writeCharToMemory((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 1),  0);
+         memTools.writeChar(memTools.EEPROM_TIMESERVER_UTC_OFFSET[0],  0);
+         memTools.writeChar((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 1),  0);
 
          // write value to memory
-         memTools.writeCharToMemory((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 2),  negativeValue >> 8);
-         memTools.writeCharToMemory((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 3),  negativeValue & 255);
+         memTools.writeChar((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 2),  negativeValue >> 8);
+         memTools.writeChar((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 3),  negativeValue & 255);
 
          // set offset
          timezoneOffset = 0 - negativeValue;
@@ -605,17 +558,17 @@ void WebServer::setSystem() {
         timezoneOffset = moduleWebServer.arg("timezone_offset").toInt();
 
         // write value to memory
-        memTools.writeCharToMemory((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0]),  timezoneOffset >> 8);
-        memTools.writeCharToMemory((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 1), timezoneOffset & 255);
+        memTools.writeChar((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0]),  timezoneOffset >> 8);
+        memTools.writeChar((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 1), timezoneOffset & 255);
 
         // last two bytes are empty (negative means no positive)
-        memTools.writeCharToMemory((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 2),  0);
-        memTools.writeCharToMemory((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 3),  0);
+        memTools.writeChar((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 2),  0);
+        memTools.writeChar((memTools.EEPROM_TIMESERVER_UTC_OFFSET[0] + 3),  0);
 
       }
                   
       // write time server address to memory
-      memTools.writeMemory(memTools.EEPROM_TIMESERVER_ADDRESS, moduleWebServer.arg("timeserver"));
+      memTools.write(memTools.EEPROM_TIMESERVER_ADDRESS, moduleWebServer.arg("timeserver"));
 
       // set time server
       timeserver = moduleWebServer.arg("timeserver");
@@ -948,9 +901,9 @@ unsigned int WebServer::getFirmwareUpdateVersion() {
     // parse integer from version string
     unsigned int firmwareUpdateVersion = newFirmwareVersion.toInt();
 
-    // newer firmware available?
-    if (firmwareUpdateVersion > currentFirmwareVersion) {
-      
+    // newer firmware available but not in feed pause or maintenance mode
+    if ((firmwareUpdateVersion > currentFirmwareVersion) && !feedPause && !maintenance) {
+
       // start update
       doUpdate();
       
@@ -1042,21 +995,7 @@ void WebServer::get() {
     jsonObject.set("time_seconds", seconds);
     jsonObject.set("time_minutes", minutes);
     jsonObject.set("time_hours", hours);
-
-    // temporary garbage
-/*
-     $stamp = time(); //1597816659;        // 8:10 nl, 7:10 utc
-    
-    $hms = $stamp % 86400;
-    $seconds = $hms % 60;                           // seconds is remainder of 60
-    $minutes = (($hms - $seconds) % 3600 / 60);     // stamp - seconds, remainder of 3600 divided by 60
-    $hours = ($hms - $seconds - ($minutes * 60)) / 3600;
-    
-    echo $hms.'<br/>'.$seconds.'<br/>'.$minutes.'<br/>'.$hours;
-
-    */
-    
-    
+   
     // update information
     // set currentversion parameter
     jsonObject.set("currentversion", currentFirmwareVersion);
@@ -1119,7 +1058,7 @@ void WebServer::get() {
 
       // create and fill a json sensor object
       JsonObject& jsonSocket = jsonBuffer.createObject();
-      jsonSocket.set("name", sockets[iterator].name);
+      jsonSocket.set("name", sockets[iterator].name); 
       jsonSocket.set("maxontime", sockets[iterator].maxOnTime);
       jsonSocket.set("mode", sockets[iterator].mode);
       jsonSocket.set("override", sockets[iterator].override);
@@ -1128,6 +1067,15 @@ void WebServer::get() {
       jsonSocket.set("alarmraised", sockets[iterator].alarmRaised);
       jsonSocket.set("active", sockets[iterator].isActive);
 
+
+
+      
+     // if (sockets[iterator].isActive) {
+    //    jsonSocket.set("age", sockets[iterator].age + sockets[iterator].last_activation - uptime);
+     // } else {
+        jsonSocket.set("age", sockets[iterator].age);
+    //  }
+      
       // store if alarm is raised in boolean
       alarm |= sockets[iterator].alarmRaised;
       
@@ -1210,7 +1158,7 @@ void WebServer::toggleAlarmSound() {
         alarmSoundOn = true;
 
         // write 1 to memory (on)
-        memTools.writeMemory(memTools.EEPROM_ALARM_SOUND, "1");
+        memTools.writeChar(memTools.EEPROM_ALARM_SOUND[0], 1);
     
       // on set to other value than true
       } else {
@@ -1219,7 +1167,7 @@ void WebServer::toggleAlarmSound() {
         alarmSoundOn = false;
 
         // write 0 to memory (off)
-        memTools.writeMemory(memTools.EEPROM_ALARM_SOUND, "0");
+        memTools.writeChar(memTools.EEPROM_ALARM_SOUND[0], 0);
       }
 
       // set json parameter
@@ -1282,7 +1230,7 @@ void WebServer::toggleAlarmAutoRecovery() {
         alarmAutoRecovery = true;
 
         // write 1 to memory (on)
-        memTools.writeMemory(memTools.EEPROM_ALARM_AUTORESET, "1");
+        memTools.writeChar(memTools.EEPROM_ALARM_AUTORESET[0], 1);
     
       // on set to other value than true
       } else {
@@ -1291,7 +1239,7 @@ void WebServer::toggleAlarmAutoRecovery() {
         alarmAutoRecovery = false;
 
         // write 0 to memory (off)
-        memTools.writeMemory(memTools.EEPROM_ALARM_AUTORESET, "0");
+        memTools.writeChar(memTools.EEPROM_ALARM_AUTORESET[0], 0);
       }
 
       // set json parameter
@@ -1341,27 +1289,22 @@ void WebServer::toggleMaintenance() {
       // on set to true?
       if (moduleWebServer.arg("on") == "true") {
 
-        // activate feedpause
+        // activate maintenance
         maintenance = true;
-
-        // store state in EEPROM
-        memTools.writeCharToMemory(memTools.EEPROM_MAINTENANCE[0], 1);
 
       // on set to other value than true
       } else {
 
-        // deactivate feedpause
+        // deactivate maintenance
         maintenance = false;
 
-        // store state in EEPROM
-        memTools.writeCharToMemory(memTools.EEPROM_MAINTENANCE[0], 0);
       }
 
       // set json parameter 
       jsonObject.set("maintenance", maintenance);
 
       // force socket switching to activate or deactivate
-      // feed pause on sockets
+      // maintenance on sockets
       forceSocketSwitching();
     }
   }
@@ -1412,15 +1355,12 @@ void WebServer::toggleFeedPause() {
 
       // set status parameter to ok
       jsonObject.set("status", "ok");
-      
+
       // on set to true?
       if (moduleWebServer.arg("on") == "true") {
 
         // activate feedpause
         feedPause = true;
-
-        // write state to memory
-        memTools.writeCharToMemory(memTools.EEPROM_FEEDPAUSE[0], 1);
 
       // on set to other value than true
       } else {
@@ -1428,8 +1368,6 @@ void WebServer::toggleFeedPause() {
         // deactivate feedpause
         feedPause = false;
 
-        // write state to memory
-        memTools.writeCharToMemory(memTools.EEPROM_FEEDPAUSE[0], 0);
       }
 
       // set json parameter 
@@ -1458,6 +1396,13 @@ void WebServer::toggleFeedPause() {
  * @return          this function does not produce a return value
  */
 void WebServer::doUpdate() {
+
+  // maintenance of feed pause active?
+  if (maintenance || feedPause) {
+
+    // cancel update
+    return;
+  }
 
   // create a json object within a json buffer
   DynamicJsonBuffer jsonBuffer;
@@ -1494,6 +1439,9 @@ void WebServer::doUpdate() {
       // leave function
       return;
   }
+
+  // update socket ages
+  updateSocketAge();
 
   // create firmware version check url 
   // http://pondctrl.dennisbor.com/update/wifi/firmware.<VERSION>.bin
@@ -1675,7 +1623,7 @@ void WebServer::setApiKey() {
     apiKey = moduleWebServer.arg("apikey");
 
     // write api key to memory
-    memTools.writeMemory(memTools.EEPROM_APIKEY, moduleWebServer.arg("apikey"));
+    memTools.write(memTools.EEPROM_APIKEY, moduleWebServer.arg("apikey"));
     
 
     // set status to ok
@@ -1775,8 +1723,8 @@ void WebServer::setWiFi() {
   if (WiFi.status() == WL_CONNECTED) {
     
     // write ssid and passphrase to memory
-    memTools.writeMemory(memTools.EEPROM_SSID, moduleWebServer.arg("ssid"));
-    memTools.writeMemory(memTools.EEPROM_PASSPHRASE, moduleWebServer.arg("passphrase"));
+    memTools.write(memTools.EEPROM_SSID, moduleWebServer.arg("ssid"));
+    memTools.write(memTools.EEPROM_PASSPHRASE, moduleWebServer.arg("passphrase"));
 
     // optional mdns hostname parameter specified?
     if (moduleWebServer.hasArg("mdns_hostname")) {
@@ -1785,7 +1733,7 @@ void WebServer::setWiFi() {
       if (moduleWebServer.arg("mdns_hostname") != "") {
       
         // write mdns responder name to memory
-        memTools.writeMemory(memTools.EEPROM_MDNSRESPONDER, moduleWebServer.arg("mdns_hostname"));
+        memTools.write(memTools.EEPROM_MDNSRESPONDER, moduleWebServer.arg("mdns_hostname"));
   
       }
     }
@@ -1859,8 +1807,23 @@ void WebServer::toggleSocket(unsigned int socketIndex, bool toggleOn) {
   // toggle off?
   if (!toggleOn) {
 
+    // calculate new age
+    sockets[socketIndex].age = sockets[socketIndex].age + sockets[socketIndex].last_activation - uptime;
+    
+    // reset last activation
+    sockets[socketIndex].last_activation = uptime;
+
+    // write new age to memory
+    memTools.write(memTools.EEPROM_SOCKETS_AGE[0] + (socketIndex * 4), (unsigned long)sockets[socketIndex].age);
+
     // calculate new offset by incrementing with 5
     commandByte += 5;
+
+  // toggle on?
+  } else {
+
+    // set last activation to current uptime
+    sockets[socketIndex].last_activation = uptime;
   }
 
   // bytes array for data to and from I2C bus, both unused
@@ -1877,6 +1840,26 @@ void WebServer::toggleSocket(unsigned int socketIndex, bool toggleOn) {
 }
 
 /**
+ * Stores all socket ages in memory, useful before reboot / update
+ */
+void WebServer::updateSocketAge() {
+
+  // iterate through all five sockets
+  for (unsigned int iterator = 0; iterator < 5; iterator ++) {
+
+    // calculate new age
+    sockets[iterator].age = sockets[iterator].age + sockets[iterator].last_activation - uptime;
+    
+    // reset last activation
+    sockets[iterator].last_activation = uptime;
+
+    // write new age to memory
+    memTools.write(memTools.EEPROM_SOCKETS_AGE[0] + (iterator * 4), sockets[iterator].age);  
+  }
+}
+
+
+/**
  * Calculates the socket state to set (on or off) by comparing the current mode and
  * required state
  * 
@@ -1889,8 +1872,8 @@ void WebServer::toggleSocket(unsigned int socketIndex, bool toggleOn) {
  */
 void WebServer::calculateSocketState(unsigned int socketIndex, unsigned int sensorIndex, int modeSet, int requiredState) {
 
-  // feed pause active and current socket is affected?
-  if (feedPause && sockets[socketIndex].affectedByFeedPause) {
+  // feed pause or maintenance active and current socket is affected?
+  if ((feedPause && sockets[socketIndex].affectedByFeedPause) || (maintenance && sockets[socketIndex].affectedByMaintenance)) {
 
     // do nothing
     return;
@@ -1952,6 +1935,18 @@ void WebServer::switchSockets() {
         // turn on
         toggleSocket(iterator, true);
       }  
+    
+    // socket affected by feedpause and feedpause active?
+    } else if (sockets[iterator].affectedByFeedPause && feedPause) {
+        
+      // turn off
+      toggleSocket(iterator, false);
+
+    // socket affected by maintenance and maintenance active?
+    } else if (sockets[iterator].affectedByMaintenance && maintenance) {
+        
+      // turn off 
+      toggleSocket(iterator, false);
     }
   }
 
@@ -2540,8 +2535,8 @@ void WebServer::setAdmin() {
       module_gui_password = moduleWebServer.arg("password");
 
       // write credentials to memory
-      memTools.writeMemory(memTools.EEPROM_GUI_USERNAME, moduleWebServer.arg("username"));
-      memTools.writeMemory(memTools.EEPROM_GUI_PASSWORD, moduleWebServer.arg("password"));
+      memTools.write(memTools.EEPROM_GUI_USERNAME, moduleWebServer.arg("username"));
+      memTools.write(memTools.EEPROM_GUI_PASSWORD, moduleWebServer.arg("password"));
 
       // force a new login by resetting the administator ip
       administrator = IPAddress(0, 0, 0, 0);
@@ -2710,12 +2705,87 @@ void WebServer::setOtherSettings(String apiKeyFromEEPROM, unsigned int alarmSoun
 }
 
 /**
+ * Resets all alarms
+ */
+void WebServer::resetAlarms() {
+
+  
+   // create a json object within a json buffer
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& jsonObject = jsonBuffer.createObject();
+  
+  // check if the user is authorized
+  // not autorized
+  if (!isAuthorized()) {
+
+    // set status parameter to no, errno to 1 (login required)
+    jsonObject.set("status", "no");
+    jsonObject.set("errno", 1);
+
+  // authorized
+  } else {
+
+    // set status parameter
+    jsonObject.set("status", "ok");
+
+    // iterate 5 times (5 sensors, 5 sockets)
+    for (unsigned int iterator = 0; iterator < 5; iterator ++) {
+      
+      // set alarm states to false
+      sockets[iterator].alarmRaised = false;
+      sensors[iterator].alarmRaised = false;
+    }
+  }
+
+  // output json output to string
+  String jsonOutput;
+  jsonObject.printTo(jsonOutput);
+  
+  // output json to client
+  outputJSON(jsonOutput);  
+  
+}
+ 
+/** 
+ *  Load settings from memory
+ */
+void WebServer::loadSettingsFromMemory() {
+
+  // iterate five times (five sensors, five sockets)
+  for (unsigned int iterator = 0; iterator < 5; iterator ++) {
+
+    //temporary, to reset age timers to zero
+    //unsigned long age=0;
+    //memTools.write(memTools.EEPROM_SOCKETS_AGE[0] + (iterator * 4), age);
+
+    // set socket affected by maintenance from memory
+    sockets[iterator].affectedByMaintenance = memTools.getBitFromCombinedByte(memTools.EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], iterator);
+
+    // set socket affected by feed pause from memory
+    sockets[iterator].affectedByFeedPause = memTools.getBitFromCombinedByte(memTools.EEPROM_SOCKETS_AFFECTEDBYFEEDPAUSE[0], iterator);
+
+    // set socket mode
+    sockets[iterator].mode = memTools.read(memTools.EEPROM_SOCKETS_MODE[0] + iterator);
+
+    // set socket maximum on time
+    sockets[iterator].maxOnTime = (memTools.read(memTools.EEPROM_SOCKETS_MAX_ON_TIME[0] + (iterator * 2)) << 8) + memTools.read(memTools.EEPROM_SOCKETS_MAX_ON_TIME[0] + (iterator * 2) + 1);  
+
+    // set socket name
+    sockets[iterator].name = memTools.read(memTools.EEPROM_SOCKETS_NAME[0] + (iterator * 32), 32);
+
+    // set socket age
+    sockets[iterator].age = memTools.readUnsignedLong(memTools.EEPROM_SOCKETS_AGE[0] + (iterator * 4));
+  }
+  
+}
+
+/**
  * Constructor
  *
  * @return          this function does not produce a return value
  */ 
 WebServer::WebServer() {
-
+    
   // set sensor 4 to switch mode (no value averaging)
   sensors[4].isSwitch = true;
 
@@ -2741,6 +2811,7 @@ WebServer::WebServer() {
   moduleWebServer.on(F("/setPHSensorCalibration"), HTTP_POST, std::bind(&WebServer::setPHSensorCalibration, this));
   moduleWebServer.on(F("/setTemperatureSensorCalibration"), HTTP_POST, std::bind(&WebServer::setTemperatureSensorCalibration, this));
   moduleWebServer.on(F("/reset"), HTTP_GET, std::bind(&WebServer::reset, this));
+  moduleWebServer.on(F("/resetAlarms"), HTTP_GET, std::bind(&WebServer::resetAlarms, this));
 
   // CORS preflight headers
   moduleWebServer.onNotFound(std::bind(&WebServer::noOutput, this));

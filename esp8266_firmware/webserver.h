@@ -127,7 +127,11 @@ class WebServer {
     void setSystem();
     void setPHSensorCalibration();
     void setTemperatureSensorCalibration();
+    void setMaintenance(char mode);
+    void setFeedPause(char mode);
     void reset();
+    void resetAlarms();
+    void updateSocketAge();
     
   public:
 
@@ -139,6 +143,7 @@ class WebServer {
     bool alarmSoundOn = false;
     
     // public member functions
+    void loadSettingsFromMemory();
     void setWirelessMode(char mode);
     void setSSIDPassPhraseAndMDSNHostname(String targetSSID, String targetPassphrase, String mdnsHostname);
     void setOtherSettings(String apiKey, unsigned int alarmSound, unsigned int alarmAutoReset, unsigned int feedpauseDurationFromEEPROM, int timezomeOffsetFromEEPROM, String timeserverFromEEPROM, unsigned int upnpPortFromEEPROM);
@@ -154,16 +159,13 @@ class WebServer {
     void setFirmwareUpdateVersion(unsigned int versionNumber);
     void doUpdate();
     void checkFeedPause();
-    void setMaintenance(char mode);
-    void setFeedPause(char mode);
     void setApiKey();
     void setUptime(unsigned long timestamp);
     unsigned int getFirmwareUpdateVersion();
     void setTimestamp(unsigned long stamp);
     int getTimezoneOffset();
     String getTimeserver();
-    unsigned int getUPnPPort();
-    
+    unsigned int getUPnPPort();   
 
     WebServer();
     

@@ -49,8 +49,14 @@ struct Socket {
   // bool to hold if alarm raised, default false
   bool alarmRaised = false;
 
-  // bool to holf if active
+  // bool to hold if active
   bool isActive = false;
+
+  // unsigned long to hold the device age in seconds
+  unsigned long age = 0;
+
+  // unsigned long to hold the last activation timestamp since uptime
+  unsigned long last_activation = 0;
 };
 
 #endif
