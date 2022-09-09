@@ -21,6 +21,8 @@
 #define SOCKET_MODE_TEMP2_HIGH         9
 #define SOCKET_MODE_LEVEL_LOW          10
 #define SOCKET_MODE_LEVEL_HIGH         11
+#define SOCKET_MODE_DAY                12
+#define SOCKET_MODE_NIGHT              13
 
 // Sensor structure
 struct Socket {

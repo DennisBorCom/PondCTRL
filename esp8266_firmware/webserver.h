@@ -132,6 +132,7 @@ class WebServer {
     void reset();
     void resetAlarms();
     void setSocketAge();
+    void setGPSCoordinates();
     
   public:
 
@@ -139,8 +140,14 @@ class WebServer {
     Sensor sensors[5];
     Socket sockets[5];
 
+    // floats to store gps coordinates used for daylight / night time socket switching - public for uploading to IoT server awaiting status response
+    float longitude, latitude;
+
     // boolean to hold if alarm buzzer is on
     bool alarmSoundOn = false;
+
+    // boolean to hold if it is day or night for daylight / night time socket switching - public because it will be set by the iot response
+    bool day = false;
     
     // public member functions
     void loadSettingsFromMemory();

@@ -14,7 +14,7 @@
  * 
  * @return          returns the server response (JSON)
  */
-String IOTLink::processData(Sensor sensors[5], Socket sockets[5], unsigned int firmwareVersion, unsigned long currentTimestamp, unsigned int externalPort) {
+String IOTLink::processData(Sensor sensors[5], Socket sockets[5], unsigned int firmwareVersion, unsigned long currentTimestamp, unsigned int externalPort, float latitude, float longitude) {
 
   // create a json object in a json buffer 
   DynamicJsonBuffer jsonBuffer;
@@ -74,6 +74,10 @@ String IOTLink::processData(Sensor sensors[5], Socket sockets[5], unsigned int f
 
   // add socket array as parameter
   jsonObject.set("sockets", jsonSocketArray);
+
+  // add gps coordinates as parameters
+  jsonObject.set("latitude", latitude);
+  jsonObject.set("longitude", longitude);
 
   // empty string to store json string
   String jsonString;

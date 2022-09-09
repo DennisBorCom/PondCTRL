@@ -52,7 +52,11 @@ class MemoryTools {
     const word EEPROM_ALARM_SOUND[2]                        = {255, 1};       // alarm sound, default is off (0)
     const word EEPROM_FEEDPAUSE_DURATION[2]                 = {288, 2};       // feed pause duration in seconds, default is 300, max is 65535
 
-    // Note: next available memory offset address is 559, total size is 4096
+    // localization settings
+    const word EEPROM_GPS_LATITUDE[2]                       = {559, 4};       // gps latitude (float), no default
+    const word EEPROM_GPS_LONGITUDE[2]                      = {563, 4};       // gps longitude (float), no default
+
+    // Note: next available memory offset address is 567, total size is 4096
     // Note: 2 bytes free: 361, 362
 
     // public function declarations
@@ -68,6 +72,8 @@ class MemoryTools {
     void checkFirstRun();
     char getBitFromCombinedByte(unsigned int memoryOffset, unsigned int index);
     void setBitForCombinedByte(unsigned int memoryOffset, unsigned int index, char value);
+    void writeFloat(unsigned int offset, float value);
+    float readFloat(unsigned int offset);
 };
 
 #endif

@@ -480,6 +480,9 @@ void WebServer::setSocket() {
   
   // output json to client
   outputJSON(jsonOutput);
+
+  // force socket switching to update states;
+  switchSockets();
 }
 
 /**
@@ -971,6 +974,9 @@ void WebServer::get() {
     jsonObject.set("alarmautorecovery", alarmAutoRecovery);
     jsonObject.set("username", module_gui_username);
     jsonObject.set("macaddress", WiFi.macAddress());
+    jsonObject.set("longitude", longitude);
+    jsonObject.set("latitude", latitude);
+    jsonObject.set("day", day);
     jsonObject.set("active", active);
     jsonObject.set("apikey", apiKey);
     jsonObject.set("debug", customData);
@@ -1932,6 +1938,30 @@ void WebServer::switchSockets() {
     // socket not overridden
     if (!sockets[iterator].override && (!(sockets[iterator].affectedByFeedPause && feedPause)) && (!(sockets[iterator].affectedByMaintenance && maintenance))) {
 
+      // day or night modes?
+      if ((sockets[iterator].mode == SOCKET_MODE_DAY) || (sockets[iterator].mode == SOCKET_MODE_NIGHT)) {
+
+        // no active IoT link means no actual day/night is available.
+        if (!active) {
+          
+          // turn the socket off
+          toggleSocket(iterator, false);
+        
+        // active IoT link, daylight state is available
+        } else {
+
+          // socket mode day?
+          if (sockets[iterator].mode == SOCKET_MODE_DAY) {
+            // if day, toggle on, otherwise toggle off
+            day ? toggleSocket(iterator, true) : toggleSocket(iterator, false);
+          //  socket mode night?
+          } else {
+            // if night, toggle on, otherwise toggle off
+            !day ? toggleSocket(iterator, true) : toggleSocket(iterator, false);
+          }
+        }
+      }
+
       // socket mode always off?
       if (sockets[iterator].mode == SOCKET_MODE_ALWAYS_OFF) {
          
@@ -2496,6 +2526,60 @@ void WebServer::showInterface() {
 }
 
 /**
+ * Sets the GPS coordinates used for daylight / night time socket switching
+ * 
+ * The function itself does not produce a return value. The generated
+ * value (json string) is sent to the web server client.
+ * 
+ * @return          this function does not produce a return value
+ */
+void WebServer::setGPSCoordinates() {
+
+  // create a json object within a json buffer
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& jsonObject = jsonBuffer.createObject();
+
+  // not autorized
+  if (!isAuthorized()) {
+
+    // set status parameter to no, errno to 1 (login required)
+    jsonObject.set("status", "no");
+    jsonObject.set("errno", 1);
+
+  // authorized
+  } else {
+
+    // longitude or latitude missing
+    if (!moduleWebServer.hasArg("longitude") || !moduleWebServer.hasArg("latitude")) {
+
+      // set status to no, errno to 3 (invalid request)
+      jsonObject.set("status", "no");
+      jsonObject.set("errno", 3);
+
+    }  else {
+
+      // set status to ok
+      jsonObject.set("status", "ok");
+
+      // set longitude and latitude variables
+      longitude = moduleWebServer.arg("longitude").toFloat();
+      latitude = moduleWebServer.arg("latitude").toFloat();
+
+      // write values to EEPROM
+      memTools.writeFloat(memTools.EEPROM_GPS_LONGITUDE[0], longitude);
+      memTools.writeFloat(memTools.EEPROM_GPS_LATITUDE[0], latitude);
+    }  
+  }
+  
+  // output json output to string
+  String jsonOutput;
+  jsonObject.printTo(jsonOutput);
+
+  // output json to client
+  outputJSON(jsonOutput);
+}
+
+/**
  * Sets the age for a specific socket
  *
  * The function itself does not produce a return value. The generated
@@ -2822,6 +2906,10 @@ void WebServer::resetAlarms() {
  */
 void WebServer::loadSettingsFromMemory() {
 
+  // gps coordinates
+  longitude = memTools.readFloat(memTools.EEPROM_GPS_LONGITUDE[0]);
+  latitude = memTools.readFloat(memTools.EEPROM_GPS_LATITUDE[0]);
+
   // iterate five times (five sensors, five sockets)
   for (unsigned int iterator = 0; iterator < 5; iterator ++) {
 
@@ -2884,6 +2972,7 @@ WebServer::WebServer() {
   moduleWebServer.on(F("/reset"), HTTP_GET, std::bind(&WebServer::reset, this));
   moduleWebServer.on(F("/resetAlarms"), HTTP_GET, std::bind(&WebServer::resetAlarms, this));
   moduleWebServer.on(F("/setSocketAge"), HTTP_POST, std::bind(&WebServer::setSocketAge, this));
+  moduleWebServer.on(F("/setGPSCoordinates"), HTTP_POST, std::bind(&WebServer::setGPSCoordinates, this));
 
   // CORS preflight headers
   moduleWebServer.onNotFound(std::bind(&WebServer::noOutput, this));

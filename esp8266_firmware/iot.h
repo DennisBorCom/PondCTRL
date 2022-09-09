@@ -24,7 +24,7 @@ class IOTLink {
     public:
 
         // public function declarations
-        String processData(Sensor sensors[5], Socket sockets[5], unsigned int firmwareVersion, unsigned long currentTimestamp, unsigned int externalPort);
+        String processData(Sensor sensors[5], Socket sockets[5], unsigned int firmwareVersion, unsigned long currentTimestamp, unsigned int externalPort, float latitude, float longitude);
 };
 
 #endif

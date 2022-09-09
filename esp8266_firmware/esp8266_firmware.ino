@@ -23,7 +23,7 @@
 #undef UPNP_DEBUG
 
 // current firmware version
-const int FIRMWARE_VERSION = 1327;
+const int FIRMWARE_VERSION = 1335;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS
@@ -480,7 +480,7 @@ void loop() {
         webserver.activateSensorData();
 
         // get response from iot api
-        String iotResponse = internetOfThings.processData(webserver.sensors, webserver.sockets, FIRMWARE_VERSION, (currentTimestamp / 1000), webserver.getUPnPPort());
+        String iotResponse = internetOfThings.processData(webserver.sensors, webserver.sockets, FIRMWARE_VERSION, (currentTimestamp / 1000), webserver.getUPnPPort(), webserver.latitude, webserver.longitude);
 
         // json buffer to store iot response json data in
         DynamicJsonBuffer iotResponseJsonBuffer;
@@ -501,6 +501,9 @@ void loop() {
             // turn off programmable led indicating there is no active IOT link
             i2cComm.processCommand(I2C_SET_LED_OFF, data, i2cData);            
           }
+
+          // set day/night state
+          webserver.day = iotResponseJsonObject.get<bool>("day");
 
           // set latest firmware version
           webserver.setFirmwareUpdateVersion(iotResponseJsonObject.get<unsigned int>("latestversion"));

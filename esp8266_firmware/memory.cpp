@@ -20,6 +20,39 @@ void MemoryTools::writeChar(unsigned int offset, char data) {
 }
 
 /**
+ * Write a float to the EEPROM memory. Please note that a float uses 4 bytes in memory
+ * 
+ * @param           offset            memory offset
+ * @param           value             floating point value to write
+ * 
+ * @return          this function does not produce a return value
+ */
+void MemoryTools::writeFloat(unsigned int offset, float value) {
+
+  // write float to memory
+  EEPROM.put(offset, value);
+}
+
+/**
+ * Read a float from EEPROM memory. 
+ * 
+ * @param          offset             memory offset
+ * 
+ * @return         floating point value read from MEMORY
+ */
+float MemoryTools::readFloat(unsigned int offset) {
+
+  // float to hold return value;
+  float returnValue;
+
+  // read float from offset
+  EEPROM.get(offset, returnValue);
+  
+  // return floating point value read from memory
+  return returnValue;
+}
+
+/**
  * Reads a char from the EEPROM memory
  * 
  * @param           offset            memory offset
