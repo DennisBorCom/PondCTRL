@@ -131,7 +131,7 @@ class WebServer {
     void setFeedPause(char mode);
     void reset();
     void resetAlarms();
-    void updateSocketAge();
+    void setSocketAge();
     
   public:
 
@@ -166,6 +166,7 @@ class WebServer {
     int getTimezoneOffset();
     String getTimeserver();
     unsigned int getUPnPPort();   
+    void updateSocketAge();
 
     WebServer();
     

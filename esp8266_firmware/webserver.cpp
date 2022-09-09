@@ -61,6 +61,7 @@ void WebServer::checkFeedPause() {
  * @return          this function does not produce a return value
  */
 void WebServer::reset() {
+  
   // create a json object within a json buffer
   DynamicJsonBuffer jsonBuffer;
   JsonObject& jsonObject = jsonBuffer.createObject();
@@ -482,7 +483,7 @@ void WebServer::setSocket() {
 }
 
 /**
- * Sets the systemn settings
+ * Sets the system settings
  * 
  * @return          this function does not produce a return value
  */
@@ -1067,14 +1068,16 @@ void WebServer::get() {
       jsonSocket.set("alarmraised", sockets[iterator].alarmRaised);
       jsonSocket.set("active", sockets[iterator].isActive);
 
+      // socket active
+      if (sockets[iterator].isActive) {
+        // calculate the actual age
+        jsonSocket.set("age", sockets[iterator].age + uptime - sockets[iterator].lastSwitchTimestamp);
 
-
-      
-     // if (sockets[iterator].isActive) {
-    //    jsonSocket.set("age", sockets[iterator].age + sockets[iterator].last_activation - uptime);
-     // } else {
+      // socket inactive
+      } else {
+        // age unchanged
         jsonSocket.set("age", sockets[iterator].age);
-    //  }
+      }
       
       // store if alarm is raised in boolean
       alarm |= sockets[iterator].alarmRaised;
@@ -1800,6 +1803,12 @@ void WebServer::getMac() {
  * @return          this function does not produce a return value
  */
 void WebServer::toggleSocket(unsigned int socketIndex, bool toggleOn) {
+
+  // state unchanged?
+  if ((sockets[socketIndex].isActive && toggleOn) || (!sockets[socketIndex].isActive && !toggleOn)) {
+    // do nothing
+    return;
+  }
   
   // calculate comnmand byte offset
   char commandByte = I2C_SET_SOCKET1_ON + socketIndex;
@@ -1808,10 +1817,7 @@ void WebServer::toggleSocket(unsigned int socketIndex, bool toggleOn) {
   if (!toggleOn) {
 
     // calculate new age
-    sockets[socketIndex].age = sockets[socketIndex].age + sockets[socketIndex].last_activation - uptime;
-    
-    // reset last activation
-    sockets[socketIndex].last_activation = uptime;
+    sockets[socketIndex].age = sockets[socketIndex].age + uptime - sockets[socketIndex].lastSwitchTimestamp;
 
     // write new age to memory
     memTools.write(memTools.EEPROM_SOCKETS_AGE[0] + (socketIndex * 4), (unsigned long)sockets[socketIndex].age);
@@ -1823,7 +1829,7 @@ void WebServer::toggleSocket(unsigned int socketIndex, bool toggleOn) {
   } else {
 
     // set last activation to current uptime
-    sockets[socketIndex].last_activation = uptime;
+    sockets[socketIndex].lastSwitchTimestamp = uptime;
   }
 
   // bytes array for data to and from I2C bus, both unused
@@ -1847,14 +1853,18 @@ void WebServer::updateSocketAge() {
   // iterate through all five sockets
   for (unsigned int iterator = 0; iterator < 5; iterator ++) {
 
-    // calculate new age
-    sockets[iterator].age = sockets[iterator].age + sockets[iterator].last_activation - uptime;
-    
-    // reset last activation
-    sockets[iterator].last_activation = uptime;
+    // only update active sockets; inactive sockets are updated on deacivation
+    if (sockets[iterator].isActive) {
+  
+      // calculate new age
+      sockets[iterator].age = sockets[iterator].age + uptime - sockets[iterator].lastSwitchTimestamp;
 
-    // write new age to memory
-    memTools.write(memTools.EEPROM_SOCKETS_AGE[0] + (iterator * 4), sockets[iterator].age);  
+      // reset last activation
+      sockets[iterator].lastSwitchTimestamp = uptime;
+
+      // write new age to memory
+      memTools.write(memTools.EEPROM_SOCKETS_AGE[0] + (iterator * 4), sockets[iterator].age);      
+    }   
   }
 }
 
@@ -2485,6 +2495,67 @@ void WebServer::showInterface() {
   moduleWebServer.send_P(200, "text/html", MAIN_page, sizeof(MAIN_page));
 }
 
+/**
+ * Sets the age for a specific socket
+ *
+ * The function itself does not produce a return value. The generated
+ * value (json string) is sent to the web server client.
+ * 
+ * @return          this function does not produce a return value
+ */
+void WebServer::setSocketAge() {
+  
+  // create a json object within a json buffer
+  DynamicJsonBuffer jsonBuffer;
+  JsonObject& jsonObject = jsonBuffer.createObject();
+
+  // not autorized
+  if (!isAuthorized()) {
+
+    // set status parameter to no, errno to 1 (login required)
+    jsonObject.set("status", "no");
+    jsonObject.set("errno", 1);
+
+  // authorized
+  } else {
+
+    // no socket index or age specified
+    if (!moduleWebServer.hasArg("socketindex") || !moduleWebServer.hasArg("age")) {
+
+      // set status to no, errno to 3 (invalid request)
+      jsonObject.set("status", "no");
+      jsonObject.set("errno", 3);
+
+    } else if (moduleWebServer.arg("socketindex").toInt() > 4) {
+    
+      // set status parameter to no, errno to 3 (invalid request)
+      jsonObject.set("status", "no");
+      jsonObject.set("errno", 3);       
+      
+    // all ok
+    } else {
+
+      // set status to ok
+      jsonObject.set("status", "ok");
+
+      // set the socket age variable
+      sockets[moduleWebServer.arg("socketindex").toInt()].age = moduleWebServer.arg("age").toInt();
+
+      // reset last switch timer
+      sockets[moduleWebServer.arg("socketindex").toInt()].lastSwitchTimestamp = millis() / 1000;
+
+      // write age to memory
+      memTools.write(memTools.EEPROM_SOCKETS_AGE[0] + (moduleWebServer.arg("socketindex").toInt() * 4), sockets[moduleWebServer.arg("socketindex").toInt()].age);
+    }  
+  }
+  
+  // output json output to string
+  String jsonOutput;
+  jsonObject.printTo(jsonOutput);
+
+  // output json to client
+  outputJSON(jsonOutput);
+}
 
 /**
  * Sets the administrative account credentials.
@@ -2812,6 +2883,7 @@ WebServer::WebServer() {
   moduleWebServer.on(F("/setTemperatureSensorCalibration"), HTTP_POST, std::bind(&WebServer::setTemperatureSensorCalibration, this));
   moduleWebServer.on(F("/reset"), HTTP_GET, std::bind(&WebServer::reset, this));
   moduleWebServer.on(F("/resetAlarms"), HTTP_GET, std::bind(&WebServer::resetAlarms, this));
+  moduleWebServer.on(F("/setSocketAge"), HTTP_POST, std::bind(&WebServer::setSocketAge, this));
 
   // CORS preflight headers
   moduleWebServer.onNotFound(std::bind(&WebServer::noOutput, this));

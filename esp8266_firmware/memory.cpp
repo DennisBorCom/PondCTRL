@@ -119,7 +119,7 @@ void MemoryTools::setBitForCombinedByte(unsigned int memoryOffset, unsigned int 
   }
 
   // write back the value to memory
-  write(memoryOffset, memoryByte);
+  writeChar(memoryOffset, memoryByte);
 }
 
 /**
@@ -214,7 +214,7 @@ void MemoryTools::write(unsigned int offset, unsigned long value) {
 unsigned long MemoryTools::readUnsignedLong(unsigned int offset) {
 
     // return unsigned long value
-    return read(offset + 3) + (read(offset + 2) << 8) + (read(offset + 1) << 16) + (read(offset) << 24);
+    return (read(offset) << 24) + (read(offset + 1) << 16) + (read(offset + 2) << 8) + read(offset + 3);
 }
 
 /**
@@ -233,20 +233,20 @@ void MemoryTools::hardReset() {
   write(EEPROM_GUI_USERNAME, "admin");                                  // default GUI username is 'admin'
   write(EEPROM_GUI_PASSWORD, "admin");                                  // default GUI password is 'admin'
   write(EEPROM_MDNSRESPONDER, "pondctrl");                              // default mDNS responder is 'pondctrl' (pondctrl.local)
-  writeChar(EEPROM_UPNP_PORT[0], 7777 >> 8);                          // default upnp port is 7777 (needs 2 bytes for storage)
+  writeChar(EEPROM_UPNP_PORT[0], 7777 >> 8);                            // default upnp port is 7777 (needs 2 bytes for storage)
   writeChar(EEPROM_UPNP_PORT[0] + 1, 7777 & 255);
-  writeChar(EEPROM_FEEDPAUSE_DURATION[0], 300 >> 8);                  // feed pause default duration is 300 seconds (needs 2 bytes for storage)
+  writeChar(EEPROM_FEEDPAUSE_DURATION[0], 300 >> 8);                    // feed pause default duration is 300 seconds (needs 2 bytes for storage)
   writeChar(EEPROM_FEEDPAUSE_DURATION[0] + 1, 300 & 255);
-  writeChar(EEPROM_ALARM_AUTORESET[0], 1);                            // alarm autoreset enabled by default
-  writeChar(EEPROM_ALARM_SOUND[0], 0);                                // alarm sound disabled by default
-  writeChar(EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], 0);              // no sockets are affected by maintenance by defeault
+  writeChar(EEPROM_ALARM_AUTORESET[0], 1);                              // alarm autoreset enabled by default
+  writeChar(EEPROM_ALARM_SOUND[0], 0);                                  // alarm sound disabled by default
+  writeChar(EEPROM_SOCKETS_AFFECTEDBYMAINTENANCE[0], 0);                // no sockets are affected by maintenance by defeault
   write(EEPROM_TIMESERVER_ADDRESS, "ntp.pool.org");                     // default time server address 'ntp.pool.org'
   write(EEPROM_SOCKETS_NAME[0], 32, "Socket #1");                       // default socket names (Socket #1 - Socket #5)
   write(EEPROM_SOCKETS_NAME[0] + 32, 32, "Socket #2");
   write(EEPROM_SOCKETS_NAME[0] + 64, 32, "Socket #3");
   write(EEPROM_SOCKETS_NAME[0] + 96, 32, "Socket #4");
   write(EEPROM_SOCKETS_NAME[0] + 128, 32, "Socket #5");   
-  write(EEPROM_SOCKETS_AGE[0], (unsigned long)0);                                    // socket age (seconds activated)
+  write(EEPROM_SOCKETS_AGE[0], (unsigned long)0);                       // socket age (seconds activated)
   write(EEPROM_SOCKETS_AGE[0] + 4, (unsigned long)0);
   write(EEPROM_SOCKETS_AGE[0] + 8, (unsigned long)0);
   write(EEPROM_SOCKETS_AGE[0] + 12, (unsigned long)0);

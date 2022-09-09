@@ -23,7 +23,7 @@
 #undef UPNP_DEBUG
 
 // current firmware version
-const int FIRMWARE_VERSION = 1303;
+const int FIRMWARE_VERSION = 1327;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS
@@ -458,6 +458,14 @@ void loop() {
       // get special instructions from i2c slave. special instructions
       // are, for example, 'reset to factory'.
       i2cComm.processCommand(I2C_GET_SPECIAL_INSTRUCTIONS, data, i2cData);
+
+      // run each hour
+      if (((iterations % 720) == 0) && (iterations > 100)) {
+
+        // update socket ages - running this hourly prevents huge differences in real / registered values
+        // on unplanned restarts
+        webserver.updateSocketAge();
+      }
 
       // iterations is dividable by 12 without a remainder: happens
       // once a minute after which data is uploaded to the Pond[CTRL]™
