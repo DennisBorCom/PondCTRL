@@ -23,7 +23,7 @@
 #undef UPNP_DEBUG
 
 // current firmware version
-const int FIRMWARE_VERSION = 1335;
+const int FIRMWARE_VERSION = 1336;
 
 // Dns server object. in AP mode (when WiFi not configured yet or
 // connection to known network is lost), the firmware starts a DNS
@@ -231,9 +231,7 @@ void setup(void) {
 
   // read ssid, passphrase and mdns responder name from memory
   ssid = memTools.read(memTools.EEPROM_SSID);
-   
   passphrase = memTools.read(memTools.EEPROM_PASSPHRASE);
-  
   mdns_hostname = memTools.read(memTools.EEPROM_MDNSRESPONDER);  
 
   // add and start a mdns responder for tcp port 80

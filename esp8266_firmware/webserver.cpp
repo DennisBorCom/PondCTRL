@@ -7,9 +7,6 @@
 // new ESP8266WebServer object at port 80 
 ESP8266WebServer moduleWebServer(80); 
 
-
-
-
 /**
  * Checks for active feed pause with expiired time (specified time in seconds)
  * 

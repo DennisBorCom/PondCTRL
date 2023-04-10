@@ -3,3 +3,6 @@ publish.bat
 esp8266_firmware.ino.generic.bin
 firmware.tar.gz
 firmware.version
+.htaccess
+._.DS_Store
+.DS_Store
